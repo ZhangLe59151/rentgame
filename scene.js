@@ -56,21 +56,38 @@
  function coffee(){const x=700,y=395;ellipse(ctx,x,y+12,44,13,'#60835a20');poly(ctx,[[x-32,y-3],[x+10,y+15],[x+42,y],[x,y-19]],'#c9b27e');poly(ctx,[[x-32,y-28],[x+10,y-11],[x+10,y+15],[x-32,y-3]],'#e5c997');poly(ctx,[[x+10,y-11],[x+42,y-25],[x+42,y],[x+10,y+15]],'#b49c73');line(ctx,[[x-35,y-25],[x-35,y-68]],'#b6a078',3);line(ctx,[[x+43,y-24],[x+43,y-68]],'#b6a078',3);poly(ctx,[[x-43,y-69],[x-4,y-88],[x+51,y-68],[x+11,y-48]],'#faf1ce');for(let i=0;i<4;i++)poly(ctx,[[x-43+i*22,y-69+i*2],[x-31+i*22,y-75+i*2],[x+23+i*5,y-55],[x+11+i*5,y-48]],'#8ea18a');round(ctx,x-18,y-31,16,16,3,'#f5edd3');ellipse(ctx,x-10,y-31,8,3,'#c1a47c');text(ctx,'COFFEE',x-10,y-48,7,'#748774');steam(x-10,y-42);umbrella(773,407);bench(ctx,758,437)}
  function umbrella(x,y){line(ctx,[[x,y],[x,y-57]],'#b6a281',3);ellipse(ctx,x,y-47,41,17,'#8caaa0');poly(ctx,[[x-41,y-47],[x,y-74],[x+41,y-47],[x,y-36]],'#f6e9c2');poly(ctx,[[x,y-74],[x+13,y-38],[x+41,y-47]],'#d5b5a0');poly(ctx,[[x,y-74],[x-15,y-39],[x-41,y-47]],'#d5b5a0');ellipse(ctx,x,y-14,21,8,'#e4d1a7');line(ctx,[[x,y-14],[x,y]],'#ae9d79',3)}
  function steam(x,y){for(let i=0;i<3;i++){const q=(t*.7+i*.33)%1;ctx.globalAlpha=(1-q)*.6;line(ctx,[[x+Math.sin(q*7+i)*3,y-q*25],[x+Math.sin(q*7+i+1)*3,y-q*25-6]],'#fffbe9',2);ctx.globalAlpha=1}}
- function barbecue(){const x=280,y=650;ellipse(ctx,x,y+8,45,13,'#63866222');line(ctx,[[x-22,y],[x-25,y+19]],'#8e967d',5);line(ctx,[[x+25,y],[x+29,y+19]],'#8e967d',5);round(ctx,x-33,y-24,66,30,8,'#87978a');ellipse(ctx,x,y-24,34,14,'#6b7e71');for(let i=0;i<5;i++)line(ctx,[[x-25+i*12,y-34],[x-25+i*12,y-14]],'#b5b9a0',2);for(let i=0;i<3;i++){ctx.save();ctx.translate(x-15+i*15,y-25);ctx.rotate(Math.sin(t*2+i)*.12);ellipse(ctx,0,0,8,4,'#d3a174');line(ctx,[[-4,-2],[3,2]],'#a67c5c',1);ctx.restore()}for(let i=0;i<4;i++)ellipse(ctx,x-20+i*13,y-9,2,2+Math.sin(t*4+i),'#efd191');steam(x-12,y-38);steam(x+14,y-35);crate(x+54,y+1)}
+ function grill(x,y){ellipse(ctx,x,y+8,45,13,'#63866222');line(ctx,[[x-22,y],[x-25,y+19]],'#8e967d',5);line(ctx,[[x+25,y],[x+29,y+19]],'#8e967d',5);round(ctx,x-33,y-24,66,30,8,'#87978a');ellipse(ctx,x,y-24,34,14,'#6b7e71');for(let i=0;i<5;i++)line(ctx,[[x-25+i*12,y-34],[x-25+i*12,y-14]],'#b5b9a0',2);for(let i=0;i<3;i++){ctx.save();ctx.translate(x-15+i*15,y-25);ctx.rotate(Math.sin(t*2+i)*.12);ellipse(ctx,0,0,8,4,'#d3a174');line(ctx,[[-4,-2],[3,2]],'#a67c5c',1);ctx.restore()}for(let i=0;i<4;i++)ellipse(ctx,x-20+i*13,y-9,2,2+Math.sin(t*4+i),'#efd191');steam(x-12,y-38);steam(x+14,y-35)}
+ function barbecue(){const l=state.facilities[1];grill(280,650);if(l>=2)grill(353,672);if(l>=3){poly(ctx,[[213,671],[303,633],[416,696],[322,741]],'#dfc7a0');canopy(307,600,188,'#c5aa8a');grill(280,650);grill(353,672);crate(394,709)}if(l>=4){round(ctx,229,687,68,23,3,'#cbb399');line(ctx,[[231,697],[294,697]],'#e7d3b4',1);round(ctx,312,716,54,14,3,'#e8d5b1')}if(l>=5){sign(352,592,'海风烧烤坊',5);for(let j=0;j<6;j++)ellipse(ctx,225+j*30,554+Math.sin(j)*3,2.6,3.2,'#fff1a9')}}
  function workshop(){const x=355,y=388;poly(ctx,[[x-25,y],[x+8,y+14],[x+31,y],[x-3,y-14]],'#bda57a');line(ctx,[[x-20,y],[x-20,y+15]],'#a58d68',4);line(ctx,[[x+24,y],[x+24,y+14]],'#a58d68',4);poly(ctx,[[x-13,y-8],[x+7,y],[x+18,y-5],[x-2,y-14]],'#e5cfa1');round(ctx,x-9,y-18,15,8,2,'#9da78a')}
  function windmill(){const x=402,y=866;poly(ctx,[[x-19,y],[x+18,y],[x+11,y-58],[x-10,y-58]],'#f1dfb7');poly(ctx,[[x-17,y-58],[x,y-78],[x+19,y-58]],'#c3a587');ctx.save();ctx.translate(x,y-49);ctx.rotate(t*.4);for(let i=0;i<4;i++){ctx.rotate(Math.PI/2);line(ctx,[[0,0],[0,-43]],'#ede5bd',4);poly(ctx,[[1,-15],[10,-15],[10,-42],[1,-42]],'#fff3d3')}ctx.restore();ellipse(ctx,x,y-49,4,4,'#a5946d')}
  function stage(){const x=813,y=1025;poly(ctx,[[x-57,y],[x,y+26],[x+57,y],[x,y-27]],'#ceb28b');for(let i=0;i<5;i++)line(ctx,[[x-43+i*12,y+7+i*4],[x+11+i*12,y-18+i*4]],'#baa47f',1);round(ctx,x-29,y-30,19,24,3,'#7d8e81');round(ctx,x+25,y-16,16,25,3,'#7d8e81');ellipse(ctx,x-19,y-18,5,5,'#a7b09a')}
+ function canopy(x,y,w,col='#9caf86'){line(ctx,[[x-w*.4,y+8],[x-w*.4,y-55]],'#b8a483',4);line(ctx,[[x+w*.4,y+8],[x+w*.4,y-55]],'#b8a483',4);poly(ctx,[[x-w*.55,y-54],[x,y-82],[x+w*.55,y-54],[x,y-31]],col);poly(ctx,[[x,y-82],[x,y-31],[x+w*.55,y-54]],'#fff8de45');line(ctx,[[x-w*.55,y-54],[x,y-31],[x+w*.55,y-54]],'#f8ecc8',3)}
+ function sign(x,y,str,level){line(ctx,[[x-27,y],[x-27,y-27]],'#a89973',3);line(ctx,[[x+27,y],[x+27,y-27]],'#a89973',3);round(ctx,x-38,y-41,76,22,5,level>=5?'#fbebbb':'#f1e8c9');text(ctx,str,x,y-26,10,'#7f9476');if(level>=5){for(let j=0;j<5;j++)ellipse(ctx,x-27+j*14,y-18,2.3,2.3,'#ffe4a4')}}
+ function cooler(x,y){round(ctx,x-13,y-14,26,19,4,'#9ebeb7');round(ctx,x-15,y-17,30,5,2,'#e3e7cc');line(ctx,[[x-4,y-9],[x+4,y-9]],'#6f9b94',2)}
+ function fishingStation(){const l=state.facilities[0];if(l>=2){poly(ctx,[[269,493],[167,533],[211,571],[302,529]],'#b89f78');poly(ctx,[[269,485],[167,525],[211,563],[302,521]],'#ddc399');for(let j=0;j<8;j++)line(ctx,[[181+j*13,526-j*5],[222+j*10,559-j*5]],'#c1aa80',1.4)}if(l>=3){cooler(273,524);crate(287,505)}if(l>=4)canopy(228,492,143,'#91adb0');if(l>=5){sign(302,478,'蓝湾渔庄',l);lamp(ctx,175,540)}}
+ function harborEquipment(){const l=state.facilities[5];if(l>=2){poly(ctx,[[984,748],[1042,725],[1100,791],[1027,834],[972,798]],'#bba681');poly(ctx,[[984,740],[1042,717],[1100,783],[1027,826],[972,790]],'#d9c49a');for(let j=0;j<8;j++)line(ctx,[[987+j*9,742+j*4],[1041+j*7,719+j*8]],'#bea77b',1)}if(l>=3){cooler(1002,790);crate(1066,802)}if(l>=4)canopy(1040,742,145,'#87a4ad');if(l>=5){sign(955,758,'蓝湾渔业',5);lamp(ctx,1092,794)}}
+ function parkUpgrades(){const l=state.facilities[3];if(l>=2){bench(ctx,465,958);for(let j=0;j<10;j++)flower(ctx,568+j*7,951+j%2*7,'#d9bed2',1.4)}if(l>=4){ellipse(ctx,457,872,30,14,'#d3d8bc');ellipse(ctx,457,867,25,10,'#95bdb5');line(ctx,[[457,867],[457,839]],'#badad0',3);ellipse(ctx,457,836,5,4,'#d5e8d1');for(let j=0;j<3;j++)ellipse(ctx,449+j*8,845+(t*20+j*8)%20,1,2,'#e7f0d6')}if(l>=5){line(ctx,[[589,943],[589,899],[628,884],[660,903],[660,946]],'#eee3bb',5);for(let j=0;j<8;j++)flower(ctx,590+j*9,900-Math.sin(j/7*Math.PI)*17,'#d8b3bc',1.3);sign(395,981,'繁花乐园',5)}}
+ function cafeUpgrades(){const l=state.facilities[4];if(l>=2){round(ctx,649,414,37,18,4,'#d7c297');round(ctx,650,409,36,7,3,'#f5e7c5')}if(l>=3)house(688,370,1,l,.75);if(l>=4){bench(ctx,760,478);sign(790,449,'日光咖啡',l)}if(l>=5){line(ctx,[[635,387],[782,375]],'#9c9d7c',1);for(let j=0;j<8;j++)ellipse(ctx,640+j*19,387-j*1.5,2.5,3,'#fff1ae')}}
+ function workshopUpgrades(){const l=state.facilities[2];if(l>=2){ctx.save();ctx.translate(61,27);workshop();ctx.restore()}if(l>=3){ctx.save();ctx.translate(15,62);workshop();ctx.restore()}if(l>=4)canopy(390,390,150,'#c4ad82');if(l>=5)sign(466,401,'海岛建造所',5)}
+ function stageUpgrades(){const l=state.facilities[6];if(l>=2){poly(ctx,[[755,1026],[833,993],[897,1025],[830,1070]],'#c4a582');line(ctx,[[757,1024],[830,1057],[896,1024]],'#e3c293',3)}if(l>=3){line(ctx,[[762,1020],[762,966],[873,966],[873,1020]],'#a8a284',4);poly(ctx,[[764,970],[870,970],[870,1006],[764,1006]],'#a7acb6');text(ctx,'BLUE BAY',817,991,12,'#e8e9cd')}if(l>=4){for(let j=0;j<6;j++)ellipse(ctx,770+j*18,963,3,4,['#ead6aa','#c9d8b8','#dfc3b7'][j%3])}if(l>=5){sign(815,949,'海岛音乐会',5);round(ctx,755,1029,20,26,3,'#6e8985');round(ctx,878,1020,20,26,3,'#6e8985')}}
  function crate(x,y){poly(ctx,[[x-12,y-14],[x,y-19],[x+13,y-13],[x,y-7]],'#dabd87');poly(ctx,[[x-12,y-14],[x,y-7],[x,y+6],[x-12,y]],'#c3a67a');poly(ctx,[[x,y-7],[x+13,y-13],[x+13,y],[x,y+6]],'#b29b73');line(ctx,[[x-10,y-10],[x-1,y+2]],'#e9cc98',2)}
- function resident(x,y,role,id,scale=1,face=1){
+ function resident(x,y,role,id,scale=1,face=1,level=1){
   const walk=role==='walk'||role==='carry',bob=walk?Math.abs(Math.sin(t*5+id))*2:Math.sin(t*1.7+id)*.4;
   ctx.save();ctx.translate(x,y);ctx.scale(scale*face,scale);ellipse(ctx,0,2,10,4,'#4e7c6428');ctx.translate(0,-bob);
   const stride=walk?Math.sin(t*5+id)*4:0;line(ctx,[[-3,-4],[-4+stride,0]],'#7b8068',4);line(ctx,[[3,-4],[4-stride,0]],'#7b8068',4);
-  round(ctx,-7,-22,14,19,5,colors[id%colors.length]);
+  round(ctx,-7,-22,14,19,5,level>=4?'#648f88':colors[id%colors.length]);if(level>=2&&role!=='walk'&&role!=='carry'){round(ctx,-5,-16,10,12,2,role==='fish'?'#acc1b4':'#f0e7cb');line(ctx,[[-4,-20],[-3,-9],[4,-9],[5,-20]],'#d8d2ad',1.2)}
   let arm=Math.sin(t*2+id)*2;if(role==='bbq')arm=Math.sin(t*3)*6;if(role==='hammer')arm=Math.sin(t*7)*8;if(role==='water')arm=Math.sin(t*2)*3;if(role==='dance')arm=Math.sin(t*3)*9;
   line(ctx,[[-7,-18],[-10-arm*.3,-10+arm]],'#e9caa4',4);line(ctx,[[7,-18],[10+arm*.5,-11-arm]],'#e9caa4',4);
   ellipse(ctx,0,-29,8.3,9,'#efd5b1');ellipse(ctx,-1,-34,8.5,4.7,id%3===0?'#8a8271':'#b79d75');ellipse(ctx,3,-28,1,1.3,'#65766a');ellipse(ctx,7,-25,2,1.2,'#e8b9a0');
-  if(['fish','water','hammer','carry'].includes(role)){ellipse(ctx,0,-36,13,3.6,'#dcc795');ellipse(ctx,-1,-40,8,4.5,'#e6d2a2')}
-  if(role==='fish'){const lift=Math.sin(t*.8+id)*4;line(ctx,[[10,-16],[31,-56-lift]],'#8c8d70',2);line(ctx,[[31,-56-lift],[52,-9]],'#eff0d79a',.8);ellipse(ctx,52,-6,10+Math.sin(t*2)*3,3,'#e0eee57a');if(Math.sin(t*.8+id)>.96){poly(ctx,[[43,-10],[49,-16],[55,-10],[49,-5]],'#b8d6c5')}}
+  if(['fish','water','hammer','carry'].includes(role)&&level<3){ellipse(ctx,0,-36,13,3.6,'#dcc795');ellipse(ctx,-1,-40,8,4.5,'#e6d2a2')}
+  if(level>=3&&role!=='walk'&&role!=='carry'){
+   const hat=role==='bbq'||role==='coffee'?'#faf4df':role==='hammer'?'#e1bd65':role==='fish'?'#709da7':'#8cab7a';
+   ellipse(ctx,0,-36,12,3,hat);round(ctx,-8,-42,16,8,4,hat);
+   if(role==='bbq'||role==='coffee'){ellipse(ctx,-5,-43,5,5,hat);ellipse(ctx,2,-45,6,6,hat);ellipse(ctx,8,-42,4,4,hat)}
+  }
+  if(level>=4){ellipse(ctx,3,-13,2,2,'#e8c86a');line(ctx,[[-6,-19],[5,-19]],'#fff2ca',1)}
+  if(level===5){poly(ctx,[[-4,-23],[0,-19],[4,-23],[0,-25]],'#dfb56b')}
+  if(role==='fish'){const lift=Math.sin(t*.8+id)*4;line(ctx,[[10,-16],[31,-56-lift]],level>=3?'#739baa':'#8c8d70',level>=4?3:2);line(ctx,[[31,-56-lift],[52,-9]],'#eff0d79a',.8);ellipse(ctx,52,-6,10+Math.sin(t*2)*3,3,'#e0eee57a');if(Math.sin(t*.8+id)>.96){poly(ctx,[[43,-10],[49,-16],[55,-10],[49,-5]],'#b8d6c5')}}
   if(role==='hammer'){line(ctx,[[12,-15-arm],[19,-25-arm]],'#a89673',3);line(ctx,[[15,-28-arm],[24,-22-arm]],'#94a192',5)}
   if(role==='water'){ellipse(ctx,15,-12,7,5,'#91b5ac');line(ctx,[[20,-12],[28,-6]],'#91b5ac',3);for(let j=0;j<4;j++)ellipse(ctx,29+j*3,-4+(t*14+j*4)%13,1,1.5,'#c9e2d5')}
   if(role==='coffee'||role==='read'){if(role==='coffee'){round(ctx,8,-14,8,8,2,'#fff2d2');steam(12,-16)}else{poly(ctx,[[5,-18],[14,-14],[23,-18],[22,-6],[14,-3],[5,-7]],'#efe2b9');line(ctx,[[14,-14],[14,-3]],'#d4c59f',1)}}
@@ -98,19 +115,32 @@
   boat(160+Math.sin(t*.075)*85,560+Math.cos(t*.075)*45,.95,Math.cos(t*.075)>0?1:-1);boat(1000+Math.sin(t*.055)*80,305+Math.cos(t*.055)*35,.7,-1);
   if(boatFlash>t)boat(185+(boatFlash-t)*8,500,.6);
   const entities=[];
-  if(has('fish'))entities.push({y:502,draw:()=>{crate(211,505)}});
+  if(has('fish'))entities.push({y:475,draw:fishingStation},{y:502,draw:()=>crate(211,505)});
   if(has('bbq'))entities.push({y:650,draw:barbecue});
-  if(has('cabin')){entities.push({y:345,draw:()=>house(440,345,0,state.facilities[2])},{y:388,draw:workshop});if(state.facilities[2]>=2)entities.push({y:325,draw:()=>house(565,325,1,1,.85)});if(state.facilities[2]>=4)entities.push({y:455,draw:()=>house(570,455,2,1,.9)})}
-  if(has('cafe'))entities.push({y:395,draw:coffee});
-  if(has('park'))entities.push({y:866,draw:windmill});
-  if(has('harbor'))entities.push({y:734,draw:()=>crate(930,734)});
-  if(has('stage'))entities.push({y:1000,draw:stage});
-  const positions=[[250,502,-1],[268,645,1],[338,402,1],[546,881,1],[724,407,1],[1027,756,1],[806,1020,1]];
-  for(let i=0;i<ACTIVITIES.length;i++)if(state.facilities[i]){const [x,y,face]=positions[i];entities.push({y,draw:()=>resident(x,y,ACTIVITIES[i].role,i,1.1,face)});const a=ACTIVITIES[i];hits.push({kind:'facility',i,x:a.x,y:a.y-18,r:55})}
+  if(has('cabin')){entities.push({y:345,draw:()=>house(440,345,0,state.facilities[2])},{y:388,draw:workshop},{y:390,draw:workshopUpgrades});if(state.facilities[2]>=2)entities.push({y:325,draw:()=>house(565,325,1,1,.85)});if(state.facilities[2]>=4)entities.push({y:455,draw:()=>house(570,455,2,1,.9)})}
+  if(has('cafe'))entities.push({y:375,draw:cafeUpgrades},{y:395,draw:coffee});
+  if(has('park')){entities.push({y:850,draw:parkUpgrades});if(state.facilities[3]>=3)entities.push({y:866,draw:windmill})}
+  if(has('harbor'))entities.push({y:710,draw:harborEquipment},{y:734,draw:()=>crate(930,734)});
+  if(has('stage'))entities.push({y:990,draw:stageUpgrades},{y:1000,draw:stage});
+  const positions=[
+   [[250,502,-1],[215,515,-1],[180,528,-1],[232,546,-1],[197,560,-1]],
+   [[268,645,1],[338,655,1],[240,700,1],[320,712,1],[375,706,1]],
+   [[338,402,1],[395,400,1],[355,440,1],[422,440,1],[450,400,1]],
+   [[546,881,1],[505,890,1],[550,930,1],[480,940,1],[600,940,1]],
+   [[724,407,1],[665,420,1],[770,445,1],[710,450,1],[680,470,1]],
+   [[1027,756,1],[995,739,1],[1050,784,1],[984,785,1],[1035,815,1]],
+   [[806,1020,1],[845,1028,1],[780,1042,1],[825,1055,1],[860,1055,1]]
+  ];
+  const staff=staffing();
+  for(let i=0;i<ACTIVITIES.length;i++)if(state.facilities[i]){
+   for(let j=0;j<staff[i];j++){const [x,y,face]=positions[i][j];entities.push({y,draw:()=>resident(x,y,ACTIVITIES[i].role,i*5+j,1.1,face,state.facilities[i])})}
+   const a=ACTIVITIES[i];hits.push({kind:'facility',i,x:a.x,y:a.y-18,r:55})
+  }
   const areas=[0,...(has('bbq')?[1]:[]),...(has('harbor')?[2]:[]),...(has('park')?[3]:[]),...(has('stage')?[4]:[])];
-  for(let j=0;j<state.population-unlocked();j++){const id=unlocked()+j;const region=j<5?0:areas[j%areas.length];if(has('stage')&&j<2)entities.push({y:1060-j*15,draw:()=>resident(855+j*22,1060-j*15,'dance',id,1.1)});else entities.push(walker(id,region))}
+  for(let j=0;j<idle();j++){const id=35+j;const region=j<5?0:areas[j%areas.length];if(has('stage')&&j<2)entities.push({y:1060-j*15,draw:()=>resident(855+j*22,1060-j*15,'dance',id,1.1)});else entities.push(walker(id,region))}
   entities.sort((a,b)=>a.y-b.y).forEach(e=>e.draw());
-  label('初来小岛',550,570);if(has('bbq'))label('海风烧烤湾',278,778);if(has('harbor'))label('潮汐渔港',838,787);if(has('park'))label('风铃公园',500,1039);if(has('stage'))label('星光海岸',842,1128);
+  const badges=[[210,598],[280,753],[450,474],[505,1010],[715,518],[1015,865],[830,1110]];
+  for(let i=0;i<7;i++)if(state.facilities[i]){const [x,y]=badges[i],l=state.facilities[i];label(`${ACTIVITIES[i].name} Lv.${l} · ${staff[i]}/${l}人 ↗`,x,y);hits.push({kind:'facility',i,x,y,r:70})}
   const next=nextIndex();if(next>=0){const a=ACTIVITIES[next];const ghost=(next===1||next===3||next===5||next===6);if(ghost){ctx.save();ctx.globalAlpha=.35;ellipse(ctx,a.x,a.y,125,58,'#d6e8d3');ctx.restore()}label(`＋ ${a.name} · ${a.people}人`,a.x,a.y+(ghost?0:-35),true);hits.push({kind:'facility',i:next,x:a.x,y:a.y+(ghost?0:-35),r:68})}
   if(!paused&&!reduced&&Math.floor(t/4)!==lastIncomePulse){lastIncomePulse=Math.floor(t/4);for(let i=0;i<7;i++)if(state.facilities[i])particles.push({x:ACTIVITIES[i].x,y:ACTIVITIES[i].y-58,kind:'earn',msg:`+${Number((activityRate(i)*4).toFixed(1))}`,start:effectTime,life:2,seed:i})}
   const fishX=has('harbor')?1080:210,fishY=has('harbor')?810:550;const leap=(t*.2)%1;if(has('fish')&&leap<.2){const k=leap/.2;poly(ctx,[[fishX,fishY-Math.sin(k*Math.PI)*25],[fishX+9,fishY-5-Math.sin(k*Math.PI)*25],[fishX+15,fishY-Math.sin(k*Math.PI)*25],[fishX+8,fishY+5-Math.sin(k*Math.PI)*25]],'#e4edcc')}
