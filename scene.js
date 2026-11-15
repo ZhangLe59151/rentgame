@@ -125,6 +125,7 @@
  }
  function workerPose(job){if(!job.path)return {x:job.x,y:job.y,face:job.face};const path=job.path,phase=((t*.115+job.id*.071)%1)*(path.length-1),segment=Math.floor(phase),k=phase-segment,a=path[segment],b=path[segment+1];return{x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,face:b[0]>=a[0]?1:-1}}
  function walker(id,region=0){const main=[[340,418],[390,480],[575,500],[735,467],[715,395],[565,402],[480,380],[360,401]];const r=REGIONS[region];const path=region===0?main:[[r.x-65,r.y+15],[r.x-15,r.y+40],[r.x+65,r.y+15],[r.x+25,r.y-15]];const p=(t*.055+id*.19)%1*path.length,i=Math.floor(p),k=p-i,a=path[i],b=path[(i+1)%path.length];const x=a[0]+(b[0]-a[0])*k,y=a[1]+(b[1]-a[1])*k;return {x,y,draw:()=>resident(x,y,has('harbor')&&id%7===0?'carry':'walk',id,1,b[0]>a[0]?1:-1)}}
+ function facilityMarker(i,x,y,locked){const scale=baseScale()*camera.zoom,screen=worldToScreen(x,y);if(screen.x<18||screen.x>W-18||screen.y<155||screen.y>H-155)return;const r=13/scale;ellipse(ctx,x,y,r,r,locked?'#fff5d4cf':'#fffbe3b5');text(ctx,locked?'＋':ACTIVITIES[i].icon,x,y+4/scale,14/scale,locked?'#a0a987':'#7f987b');hits.push({kind:'facility',i,x,y,r:22/scale})}
  function label(str,x,y,locked=false){const w=str.length*12+36;round(ctx,x-w/2,y-17,w,31,15,locked?'#e3efe6af':'#fff7ddd9');text(ctx,(locked?'⌑ ':'')+str,x,y+3,12,locked?'#789c96':'#728970');if(locked)hits.push({kind:'region',x,y,r:55})}
  function boat(x,y,s,flip=1){ctx.save();ctx.translate(x,y);ctx.scale(s*flip,s);ellipse(ctx,0,9,46,11,'#70b9c038');line(ctx,[[-43,10],[-70,17]],'#d5eee081',3);poly(ctx,[[-35,-3],[36,-3],[21,16],[-22,16]],'#f4edd0');poly(ctx,[[-35,-3],[36,-3],[23,5],[-30,5]],'#b99876');round(ctx,-17,-23,36,20,4,'#fff6dd');round(ctx,-9,-35,18,12,3,'#dfb77c');for(let i=0;i<3;i++)round(ctx,-10+i*10,-18,6,6,2,'#8ab7b6');line(ctx,[[5,-35],[5,-51]],'#c3b28b',2);poly(ctx,[[5,-51],[24,-45],[5,-40]],'#c8816f');ctx.restore()}
  function seagull(x,y,id){const flap=Math.sin(t*3+id)*5;line(ctx,[[x-9,y-flap],[x,y],[x+9,y-flap]],'#f7f6e7',2.5)}
@@ -144,7 +145,7 @@
   if(boatFlash>t)boat(185+(boatFlash-t)*8,500,.6);
   const entities=[];
   if(has('fish'))entities.push({y:420,draw:fishingStation},{y:502,draw:()=>crate(211,505)});
-  if(has('bbq'))entities.push({y:590,draw:bbqRoof},{y:625,draw:bbqStations},{y:650,draw:barbecue});
+  if(has('bbq'))entities.push({y:590,draw:bbqRoof},{y:625,draw:bbqStations},{y:600,draw:barbecue});
   if(has('cabin')){entities.push({y:385,draw:()=>extraStations(2)},{y:345,draw:()=>house(440,345,0,state.facilities[2])},{y:388,draw:workshop},{y:390,draw:workshopUpgrades});if(state.facilities[2]>=2)entities.push({y:325,draw:()=>house(565,325,1,1,.85)});if(state.facilities[2]>=4)entities.push({y:455,draw:()=>house(570,455,2,1,.9)})}
   if(has('cafe'))entities.push({y:375,draw:cafeUpgrades},{y:390,draw:()=>extraStations(4)},{y:395,draw:coffee});
   if(has('park')){entities.push({y:850,draw:parkUpgrades},{y:865,draw:()=>extraStations(3)});if(state.facilities[3]>=3)entities.push({y:866,draw:windmill})}
@@ -158,19 +159,22 @@
   const areas=[0,...(has('bbq')?[1]:[]),...(has('harbor')?[2]:[]),...(has('park')?[3]:[]),...(has('stage')?[4]:[])];
   for(let j=0;j<idle();j++){const id=35+j;const region=j<5?0:areas[j%areas.length];if(has('stage')&&j<2)entities.push({y:1060-j*15,draw:()=>resident(855+j*22,1060-j*15,'dance',id,1.1)});else entities.push(walker(id,region))}
   entities.sort((a,b)=>a.y-b.y).forEach(e=>e.draw());
-  const badges=[[210,598],[280,753],[450,474],[505,1010],[715,518],[1015,865],[830,1110]];
-  for(let i=0;i<7;i++)if(state.facilities[i]){const [x,y]=badges[i],l=state.facilities[i];label(`${ACTIVITIES[i].name} Lv.${l} · ${staff[i]}/${l}人 ↗`,x,y);hits.push({kind:'facility',i,x,y,r:70})}
-  const next=nextIndex();if(next>=0){const a=ACTIVITIES[next];const ghost=(next===1||next===3||next===5||next===6);if(ghost){ctx.save();ctx.globalAlpha=.35;ellipse(ctx,a.x,a.y,125,58,'#d6e8d3');ctx.restore()}label(`＋ ${a.name} · ${a.people}人`,a.x,a.y+(ghost?0:-35),true);hits.push({kind:'facility',i:next,x:a.x,y:a.y+(ghost?0:-35),r:68})}
-  if(!paused&&!reduced&&Math.floor(t/4)!==lastIncomePulse){lastIncomePulse=Math.floor(t/4);for(let i=0;i<7;i++)if(state.facilities[i])particles.push({x:ACTIVITIES[i].x,y:ACTIVITIES[i].y-58,kind:'earn',msg:`+${Number((activityRate(i)*4).toFixed(1))}`,start:effectTime,life:2,seed:i})}
+  const markers=[[112,593],[110,759],[321,477],[345,1000],[846,502],[1130,848],[1000,1104]];
+  if(!$('game').classList.contains('zen')){
+   for(let i=0;i<7;i++)if(state.facilities[i]){const [x,y]=markers[i];facilityMarker(i,x,y,false)}
+   const next=nextIndex();if(next>=0){const a=ACTIVITIES[next],ghost=[1,3,5,6].includes(next);if(ghost){ctx.save();ctx.globalAlpha=.24;ellipse(ctx,a.x,a.y,100,46,'#d6e8d3');ctx.restore()}facilityMarker(next,a.x,a.y+(ghost?0:-35),true)}
+  }
+  if(!paused&&!reduced&&Math.floor(t/4)!==lastIncomePulse){lastIncomePulse=Math.floor(t/4);for(let i=0;i<7;i++)if(state.facilities[i])particles.push({x:ACTIVITIES[i].x+35,y:ACTIVITIES[i].y-72,kind:'spark',start:effectTime,life:1.3,seed:i})}
   const fishX=has('harbor')?1080:210,fishY=has('harbor')?810:550;const leap=(t*.2)%1;if(has('fish')&&leap<.2){const k=leap/.2;poly(ctx,[[fishX,fishY-Math.sin(k*Math.PI)*25],[fishX+9,fishY-5-Math.sin(k*Math.PI)*25],[fishX+15,fishY-Math.sin(k*Math.PI)*25],[fishX+8,fishY+5-Math.sin(k*Math.PI)*25]],'#e4edcc')}
   if(has('park'))for(let i=0;i<4;i++){const x=520+Math.sin(t*.6+i*2)*70,y=835+Math.cos(t*.7+i)*25;ellipse(ctx,x,y,Math.abs(Math.sin(t*7+i))*4+1,3,'#f5e6a6')}
   for(let i=0;i<4;i++)seagull(350+Math.sin(t*.07+i*1.8)*400,210+Math.cos(t*.07+i)*70,i);
-  for(const p of particles){const age=effectTime-p.start;if(age>p.life)continue;ctx.globalAlpha=1-age/p.life;const py=p.y-age*(p.kind==='greet'?20:55),px=p.x+Math.sin(age*2+p.seed)*age*15;if(p.kind==='coin')text(ctx,'✦',px,py,22,'#ffeb9e');else if(p.kind==='earn'){text(ctx,p.msg,px,py,16,'#fff1b2')}else if(p.kind==='greet'){round(ctx,px-27,py-17,54,24,10,'#fff9df');text(ctx,p.msg,px,py,10,'#719179')}else{ctx.save();ctx.translate(px,py);ctx.rotate(age+p.seed);ctx.fillStyle=p.seed%2?'#f6deb0':'#d4e9b9';ctx.fillRect(-3,-3,6,6);ctx.restore()}ctx.globalAlpha=1}particles=particles.filter(p=>effectTime-p.start<p.life);
+  for(const p of particles){const age=effectTime-p.start;if(age>p.life)continue;ctx.globalAlpha=1-age/p.life;const py=p.y-age*(p.kind==='greet'?20:55),px=p.x+Math.sin(age*2+p.seed)*age*15;if(p.kind==='spark'){ellipse(ctx,px,py,3,3,'#f4de9a')}else if(p.kind==='coin')text(ctx,'✦',px,py,22,'#ffeb9e');else if(p.kind==='earn'){text(ctx,p.msg,px,py,16,'#fff1b2')}else if(p.kind==='greet'){round(ctx,px-27,py-17,54,24,10,'#fff9df');text(ctx,p.msg,px,py,10,'#719179')}else{ctx.save();ctx.translate(px,py);ctx.rotate(age+p.seed);ctx.fillStyle=p.seed%2?'#f6deb0':'#d4e9b9';ctx.fillRect(-3,-3,6,6);ctx.restore()}ctx.globalAlpha=1}particles=particles.filter(p=>effectTime-p.start<p.life);
   ctx.setTransform(DPR,0,0,DPR,0,0);
  }
  function burst(x,y,kind){const n=kind==='unlock'?34:kind==='coin'?12:20;for(let i=0;i<n;i++)particles.push({x:x+(hash(i+1)-.5)*100,y:y+(hash(i+9)-.5)*45,kind,start:effectTime,life:1.8+hash(i)*1.3,seed:i})}
  function home(){focusTarget={x:550,y:unlocked()<2?475:has('park')?630:530,zoom:unlocked()<2?1.5:1.2}}
  function focus(x,y,zoom=1.5){focusTarget={x,y,zoom}}
+ function inspectWork(i){const a=ACTIVITIES[i];focus(i===1?300:a.x,i===1?678:i===0?515:a.y,1.95)}
  function tap(x,y){const p=screenToWorld(x,y);const hit=[...hits].reverse().find(h=>Math.hypot(h.x-p.x,h.y-p.y)<h.r);if(!hit)return;
   if(hit.kind==='facility')openActivity(hit.i);
   if(hit.kind==='person'){const words={bbq:['翻个面吧','烤鱼好香'],walk:['你好呀','海风真好','去散个步'],carry:['新鲜的鱼','借过一下'],hammer:['快修好啦','笃笃笃'],fish:['等一条鱼','嘘…上钩了'],water:['慢慢长大','花开啦'],coffee:['来杯咖啡？','刚刚煮好'],read:['再读一页','真舒服呀'],music:['♪ 海的歌','一起听吧'],dance:['啦啦啦','跟着摇摆']};const list=words[hit.role]||[`${ROLE_NAMES[hit.role]||'工作'}中`, '配合得真好'];particles.push({x:hit.x,y:hit.y-30,kind:'greet',msg:list[Math.floor(hash(t)*list.length)],start:effectTime,life:2.8,seed:0})}
@@ -183,6 +187,6 @@
  canvas.addEventListener('wheel',e=>{e.preventDefault();focusTarget=null;camera.zoom=Math.max(.65,Math.min(3.8,camera.zoom*Math.exp(-e.deltaY*.001)))},{passive:false});
  canvas.addEventListener('keydown',e=>{const keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','-','Home'];if(!keys.includes(e.key))return;e.preventDefault();focusTarget=null;if(e.key==='Home')home();if(e.key==='ArrowUp')camera.y-=35;if(e.key==='ArrowDown')camera.y+=35;if(e.key==='ArrowLeft')camera.x-=35;if(e.key==='ArrowRight')camera.x+=35;if(e.key==='+')camera.zoom=Math.min(3.8,camera.zoom*1.15);if(e.key==='-')camera.zoom=Math.max(.65,camera.zoom/1.15)});
  $('zoomIn').onclick=()=>{focusTarget=null;camera.zoom=Math.min(3.8,camera.zoom*1.25)};$('zoomOut').onclick=()=>{focusTarget=null;camera.zoom=Math.max(.65,camera.zoom/1.25)};$('recenter').onclick=home;
- window.islandScene={home,focus,burst,arrival:()=>{boatFlash=t+5},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
+ window.islandScene={home,focus,inspectWork,burst,arrival:()=>{boatFlash=t+5},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
  addEventListener('resize',resize);resize();home();requestAnimationFrame(draw);
 })();
