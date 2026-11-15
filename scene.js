@@ -187,6 +187,6 @@
  canvas.addEventListener('wheel',e=>{e.preventDefault();focusTarget=null;camera.zoom=Math.max(.65,Math.min(3.8,camera.zoom*Math.exp(-e.deltaY*.001)))},{passive:false});
  canvas.addEventListener('keydown',e=>{const keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','-','Home'];if(!keys.includes(e.key))return;e.preventDefault();focusTarget=null;if(e.key==='Home')home();if(e.key==='ArrowUp')camera.y-=35;if(e.key==='ArrowDown')camera.y+=35;if(e.key==='ArrowLeft')camera.x-=35;if(e.key==='ArrowRight')camera.x+=35;if(e.key==='+')camera.zoom=Math.min(3.8,camera.zoom*1.15);if(e.key==='-')camera.zoom=Math.max(.65,camera.zoom/1.15)});
  $('zoomIn').onclick=()=>{focusTarget=null;camera.zoom=Math.min(3.8,camera.zoom*1.25)};$('zoomOut').onclick=()=>{focusTarget=null;camera.zoom=Math.max(.65,camera.zoom/1.25)};$('recenter').onclick=home;
- window.islandScene={home,focus,inspectWork,burst,arrival:()=>{boatFlash=t+5},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
+ window.islandScene={reset(){particles=[];hits=[];boatFlash=0;t=0;effectTime=0;lastIncomePulse=-1;terrainKey='';pointers.clear();gesture=null;tapStart=null;moved=false;reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;camera.x=550;camera.y=500;camera.zoom=1.25;home()},home,focus,inspectWork,burst,arrival:()=>{boatFlash=t+5},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
  addEventListener('resize',resize);resize();home();requestAnimationFrame(draw);
 })();
