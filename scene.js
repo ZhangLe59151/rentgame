@@ -1,7 +1,7 @@
 'use strict';
 (()=>{
  const canvas=$('world'),ctx=canvas.getContext('2d',{alpha:false});
- let W=0,H=0,DPR=1,t=0,lastFrame=0,effectTime=0,hits=[],particles=[],boatFlash=0,focusTarget=null,lastIncomePulse=-1,terrainKey='',terrain;
+ let W=0,H=0,DPR=1,t=0,lastFrame=0,effectTime=0,hits=[],particles=[],boatFlash=9,arrivalActorId=null,disembarkStart=0,disembarkUntil=0,focusTarget=null,lastIncomePulse=-1,terrainKey='',terrain;
  const camera={x:550,y:500,zoom:1.25},pointers=new Map();let gesture=null,tapStart=null,moved=false;
  let reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const colors=['#d88773','#769b98','#c7a45d','#809a70','#8c91ad','#cc9874'];
@@ -28,6 +28,7 @@
   island(c,550,415,350,173,1);
   line(c,[[335,426],[445,494],[565,463],[715,470]],'#e3d4a6',22);line(c,[[540,290],[550,452]],'#e3d4a6',16);
   bridge(c,267,442,170,502);poly(c,[[132,494],[182,474],[216,492],[166,516]],'#d3b586');line(c,[[141,495],[183,479]],'#b79b72',2);
+  bridge(c,700,285,743,239);bridge(c,743,239,752,228);line(c,[[700,285],[682,310],[650,340]],'#e3d4a6',11);lamp(c,715,274);
   ellipse(c,752,408,36,19,'#8fb9a2');ellipse(c,752,405,31,15,'#9bc9bf');ellipse(c,751,401,18,5,'#bfe0c8');
   if(has('park')){bench(c,605,508);lamp(c,365,457);lamp(c,660,500);}
   for(const [x,y]of [[306,347],[337,310],[772,332],[810,371],[305,433],[731,517]])tree(c,x,y,.8);
@@ -124,10 +125,57 @@
   ctx.restore();hits.push({kind:'person',role,id,x,y:y-18,r:22*scale})
  }
  function workerPose(job){if(!job.path)return {x:job.x,y:job.y,face:job.face};const path=job.path,phase=((t*.115+job.id*.071)%1)*(path.length-1),segment=Math.floor(phase),k=phase-segment,a=path[segment],b=path[segment+1];return{x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,face:b[0]>=a[0]?1:-1}}
- function walker(id,region=0){const main=[[340,418],[390,480],[575,500],[735,467],[715,395],[565,402],[480,380],[360,401]];const r=REGIONS[region];const path=region===0?main:[[r.x-65,r.y+15],[r.x-15,r.y+40],[r.x+65,r.y+15],[r.x+25,r.y-15]];const p=(t*.055+id*.19)%1*path.length,i=Math.floor(p),k=p-i,a=path[i],b=path[(i+1)%path.length];const x=a[0]+(b[0]-a[0])*k,y=a[1]+(b[1]-a[1])*k;return {x,y,draw:()=>resident(x,y,has('harbor')&&id%7===0?'carry':'walk',id,1,b[0]>a[0]?1:-1)}}
+ function walker(id,region=0){const main=[[340,418],[390,480],[575,500],[735,467],[715,395],[565,402],[480,380],[360,401]],r=REGIONS[region],path=region===0?main:[[r.x-65,r.y+15],[r.x-15,r.y+40],[r.x+65,r.y+15],[r.x+25,r.y-15]];
+  const p=(t*.055+id*.19)%1*path.length,i=Math.floor(p),k=p-i,a=path[i],b=path[(i+1)%path.length],target={x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,face:b[0]>a[0]?1:-1},pose=arrivalPose(id,target);
+  return{x:pose.x,y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':has('harbor')&&id%7===0?'carry':'walk',id,1,pose.face)}
+ }
  function facilityMarker(i,x,y,locked){const scale=baseScale()*camera.zoom,screen=worldToScreen(x,y);if(screen.x<18||screen.x>W-18||screen.y<155||screen.y>H-155)return;const r=13/scale;ellipse(ctx,x,y,r,r,locked?'#fff5d4cf':'#fffbe3b5');text(ctx,locked?'＋':ACTIVITIES[i].icon,x,y+4/scale,14/scale,locked?'#a0a987':'#7f987b');hits.push({kind:'facility',i,x,y,r:22/scale})}
  function label(str,x,y,locked=false){const w=str.length*12+36;round(ctx,x-w/2,y-17,w,31,15,locked?'#e3efe6af':'#fff7ddd9');text(ctx,(locked?'⌑ ':'')+str,x,y+3,12,locked?'#789c96':'#728970');if(locked)hits.push({kind:'region',x,y,r:55})}
- function boat(x,y,s,flip=1){ctx.save();ctx.translate(x,y);ctx.scale(s*flip,s);ellipse(ctx,0,9,46,11,'#70b9c038');line(ctx,[[-43,10],[-70,17]],'#d5eee081',3);poly(ctx,[[-35,-3],[36,-3],[21,16],[-22,16]],'#f4edd0');poly(ctx,[[-35,-3],[36,-3],[23,5],[-30,5]],'#b99876');round(ctx,-17,-23,36,20,4,'#fff6dd');round(ctx,-9,-35,18,12,3,'#dfb77c');for(let i=0;i<3;i++)round(ctx,-10+i*10,-18,6,6,2,'#8ab7b6');line(ctx,[[5,-35],[5,-51]],'#c3b28b',2);poly(ctx,[[5,-51],[24,-45],[5,-40]],'#c8816f');ctx.restore()}
+ function boat(x,y,size,flip=1,moving=1,opacity=1){
+  const screen=worldToScreen(x,y),scale=baseScale()*camera.zoom;
+  const halfW=67*size*scale,top=screen.y-57*size*scale,bottom=screen.y+30*size*scale;
+  const safeTop=W<800?158:100,safeBottom=H-153;
+  if(bottom<safeTop||top>safeBottom||screen.x+halfW<0||screen.x-halfW>W)return;
+  let fade=Math.min(1,Math.max(0,(top-safeTop+18)/25),Math.max(0,(safeBottom-bottom+18)/25));
+  if(W<800&&screen.x+halfW>W-48&&top<287)fade*=Math.max(0,Math.min(1,(W-30-screen.x-halfW)/18));
+  if(fade<=0)return;
+  ctx.save();ctx.globalAlpha=opacity*fade;ctx.translate(x,y+Math.sin(t*1.8)*1.4);ctx.scale(size*flip,size);ctx.rotate(Math.sin(t*1.25)*.012);
+  ellipse(ctx,0,21,62,11,'#539ea336');
+  if(moving>.05){for(let j=0;j<3;j++){const phase=(t*.65+j*.32)%1;ctx.globalAlpha=opacity*fade*(1-phase)*.42;line(ctx,[[-48-phase*56,9+j*6],[-32-phase*46,15+j*5],[-53-phase*51,20+j*5]],'#eaf6e2',2-j*.35)}ctx.globalAlpha=opacity*fade}
+  else{ctx.globalAlpha=opacity*fade*.35;ellipse(ctx,0,24,63+Math.sin(t)*4,13,'#b8e6d8');ctx.globalAlpha=opacity*fade}
+  // A rounded two-tone hull, wooden deck and raised passenger cabin.
+  poly(ctx,[[-54,-1],[-40,20],[25,25],[54,7],[62,-7],[25,1]],'#6f9e9a');
+  poly(ctx,[[-52,0],[-38,13],[27,18],[55,1],[60,-7],[24,0]],'#eef0d8');
+  line(ctx,[[-45,13],[24,20],[50,6]],'#e4bc75',3);
+  poly(ctx,[[-53,-5],[-19,-22],[45,-13],[60,-6],[25,8],[-35,1]],'#d5b98b');
+  poly(ctx,[[-40,-6],[-15,-18],[39,-10],[48,-5],[23,5],[-29,0]],'#e4d1a8');
+  for(let j=0;j<6;j++)line(ctx,[[-33+j*10,-8+j*.5],[-18+j*10,1-j*.1]],'#c5ac83',.8);
+  round(ctx,-24,-32,53,29,6,'#f8f2db');poly(ctx,[[29,-30],[40,-24],[40,-6],[29,-3]],'#dfe2c8');
+  for(let j=0;j<4;j++){round(ctx,-17+j*11,-26,8,12,2,'#81b6ba');line(ctx,[[-16+j*11,-24],[-12+j*11,-24]],'#d6e8d6',1)}
+  poly(ctx,[[-30,-34],[-14,-44],[39,-35],[46,-28],[24,-25],[-22,-28]],'#87b5ab');
+  round(ctx,-6,-46,23,13,4,'#fbf2d8');round(ctx,-2,-43,7,6,2,'#7fadb1');round(ctx,8,-42,6,6,2,'#7fadb1');
+  line(ctx,[[5,-47],[5,-61]],'#bba27b',2);poly(ctx,[[5,-61],[25,-56],[5,-51]],'#cf947f');
+  // Railings, lifebuoy, deck seats, captain and passengers are part of the vessel.
+  line(ctx,[[-45,-9],[-45,-18],[-28,-25]],'#f5e9c8',2);line(ctx,[[33,2],[52,-6],[52,-17]],'#f5e9c8',2);
+  ellipse(ctx,-33,7,7,7,'#ecd3a1');ellipse(ctx,-33,7,4,4,'#7da5a0');line(ctx,[[-38,2],[-35,5]],'#ce947c',2);line(ctx,[[-31,10],[-28,13]],'#ce947c',2);
+  round(ctx,32,-8,10,6,2,'#ae9875');round(ctx,-36,-9,9,5,2,'#ae9875');
+  ellipse(ctx,4,-31,3,3,'#e6c59f');round(ctx,1,-29,6,6,2,'#78968c');
+  for(let j=0;j<2;j++){const px=32+j*10,py=-14-j*2;ellipse(ctx,px,py-5,3,3,'#ead0a9');round(ctx,px-3,py-2,6,7,2,j?'#c89f7d':'#9caf8d')}
+  ellipse(ctx,47,7,2.4,2.4,'#acb8a2');ellipse(ctx,35,12,2.4,2.4,'#acb8a2');
+  ctx.restore()
+ }
+ function ferry(){let k,leaving=false,opacity=1,moving=1;
+  if(boatFlash>t){const remaining=boatFlash-t;if(remaining>=4.5){k=1;moving=0}else{const u=1-remaining/4.5;k=1-u*u*(3-2*u);leaving=true;opacity=Math.min(1,k*4)}}
+  else if(state.population<capacity()){const p=state.phase/ARRIVAL;k=Math.max(0,Math.min(1,(p-.40)/.46));if(k<=0)return;opacity=Math.min(1,k*5);if(k>=1)moving=0}
+  else return;
+  const p=ferryRoute(k);boat(p.x,p.y,1.05,leaving?1:-1,moving,opacity)
+ }
+ function arrivalPose(id,target){if(id!==arrivalActorId||t>=disembarkUntil)return target;const progress=Math.max(0,Math.min(1,(t-disembarkStart)/8.5));
+  const after=target.y>580&&target.x<700?[[550,430],[385,526],[315,603]]:target.y>580?[[735,480],[790,586]]:[[550,400]];
+  const points=[[752,228],[735,247],[703,280],[686,303],...after,[target.x,target.y]],lengths=[];let total=0;
+  for(let j=0;j<points.length-1;j++){const d=Math.hypot(points[j+1][0]-points[j][0],points[j+1][1]-points[j][1]);lengths.push(d);total+=d}
+  let distance=progress*total;for(let j=0;j<lengths.length;j++){if(distance<=lengths[j]||j===lengths.length-1){const a=points[j],b=points[j+1],u=lengths[j]?Math.min(1,distance/lengths[j]):1;return{x:a[0]+(b[0]-a[0])*u,y:a[1]+(b[1]-a[1])*u,face:b[0]>=a[0]?1:-1,arriving:true}}distance-=lengths[j]}return target
+ }
  function seagull(x,y,id){const flap=Math.sin(t*3+id)*5;line(ctx,[[x-9,y-flap],[x,y],[x+9,y-flap]],'#f7f6e7',2.5)}
  function resize(){const r=canvas.getBoundingClientRect();W=r.width;H=r.height;DPR=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR)}
  function baseScale(){return Math.min(W/1050,(H-150)/1100)}
@@ -138,11 +186,10 @@
   ctx.setTransform(DPR,0,0,DPR,0,0);const ocean=ctx.createLinearGradient(0,0,0,H);ocean.addColorStop(0,'#a0d7db');ocean.addColorStop(.6,'#84cbd1');ocean.addColorStop(1,'#78bfc9');ctx.fillStyle=ocean;ctx.fillRect(0,0,W,H);
   for(let j=0;j<Math.ceil(H/65)+1;j++)for(let i=0;i<Math.ceil(W/95)+1;i++){const x=i*95+(j%2)*35+Math.sin(t*.2+j)*8,y=j*65+Math.sin(t*.4+i+j)*3;ctx.globalAlpha=.13+Math.sin(t*.5+i)*.05;ctx.beginPath();ctx.ellipse(x,y,11,3,0,.2,Math.PI-.2);ctx.strokeStyle='#eaffed';ctx.lineWidth=1.5;ctx.stroke()}ctx.globalAlpha=1;
   const s=baseScale()*camera.zoom;ctx.translate(W/2,H*.52);ctx.scale(s,s);ctx.translate(-camera.x,-camera.y);hits=[];
+  ferry();
   if(terrainKey!==state.facilities.join())rebuildTerrain();ctx.drawImage(terrain,0,0);
   // Faraway sandbars keep the horizon alive while the inhabited bays grow.
   ellipse(ctx,96,285,46,19,'#b8dcd0');ellipse(ctx,96,280,36,13,'#f3dfae');palm(ctx,98,280,.65);ellipse(ctx,1033,429,35,15,'#ebdaad');tree(ctx,1035,425,.45);
-  boat(160+Math.sin(t*.075)*85,560+Math.cos(t*.075)*45,.95,Math.cos(t*.075)>0?1:-1);boat(1000+Math.sin(t*.055)*80,305+Math.cos(t*.055)*35,.7,-1);
-  if(boatFlash>t)boat(185+(boatFlash-t)*8,500,.6);
   const entities=[];
   if(has('fish'))entities.push({y:420,draw:fishingStation},{y:502,draw:()=>crate(211,505)});
   if(has('bbq'))entities.push({y:590,draw:bbqRoof},{y:625,draw:bbqStations},{y:600,draw:barbecue});
@@ -153,7 +200,7 @@
   if(has('stage'))entities.push({y:990,draw:stageUpgrades},{y:1000,draw:stage});
   const staff=staffing();
   for(let i=0;i<ACTIVITIES.length;i++)if(state.facilities[i]){
-   for(const job of jobPlan(i)){const worker=workerPose(job);entities.push({y:worker.y,draw:()=>resident(worker.x,worker.y,job.role,job.id,1.1,worker.face,state.facilities[i])})}
+   for(const job of jobPlan(i)){const worker=arrivalPose(job.id,workerPose(job));entities.push({y:worker.y,draw:()=>resident(worker.x,worker.y,worker.arriving?'walk':job.role,job.id,1.1,worker.face,worker.arriving?1:state.facilities[i])})}
    const a=ACTIVITIES[i];hits.push({kind:'facility',i,x:a.x,y:a.y-18,r:55})
   }
   const areas=[0,...(has('bbq')?[1]:[]),...(has('harbor')?[2]:[]),...(has('park')?[3]:[]),...(has('stage')?[4]:[])];
@@ -187,6 +234,6 @@
  canvas.addEventListener('wheel',e=>{e.preventDefault();focusTarget=null;camera.zoom=Math.max(.65,Math.min(3.8,camera.zoom*Math.exp(-e.deltaY*.001)))},{passive:false});
  canvas.addEventListener('keydown',e=>{const keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','-','Home'];if(!keys.includes(e.key))return;e.preventDefault();focusTarget=null;if(e.key==='Home')home();if(e.key==='ArrowUp')camera.y-=35;if(e.key==='ArrowDown')camera.y+=35;if(e.key==='ArrowLeft')camera.x-=35;if(e.key==='ArrowRight')camera.x+=35;if(e.key==='+')camera.zoom=Math.min(3.8,camera.zoom*1.15);if(e.key==='-')camera.zoom=Math.max(.65,camera.zoom/1.15)});
  $('zoomIn').onclick=()=>{focusTarget=null;camera.zoom=Math.min(3.8,camera.zoom*1.25)};$('zoomOut').onclick=()=>{focusTarget=null;camera.zoom=Math.max(.65,camera.zoom/1.25)};$('recenter').onclick=home;
- window.islandScene={reset(){particles=[];hits=[];boatFlash=0;t=0;effectTime=0;lastIncomePulse=-1;terrainKey='';pointers.clear();gesture=null;tapStart=null;moved=false;reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;camera.x=550;camera.y=500;camera.zoom=1.25;home()},home,focus,inspectWork,burst,arrival:()=>{boatFlash=t+5},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
+ window.islandScene={reset(){particles=[];hits=[];boatFlash=9;arrivalActorId=null;disembarkStart=0;disembarkUntil=0;t=0;effectTime=0;lastIncomePulse=-1;terrainKey='';pointers.clear();gesture=null;tapStart=null;moved=false;reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;camera.x=550;camera.y=500;camera.zoom=1.25;home()},home,focus,inspectWork,burst,arrival:(event={})=>{boatFlash=t+9;disembarkStart=t;disembarkUntil=t+8.5;arrivalActorId=null;const before=event.beforeStaff||staffing(),oldIdle=(event.beforePopulation??state.population)-before.reduce((n,v)=>n+v,0);if(idle()>oldIdle)arrivalActorId=35+idle()-1;else{const now=staffing();for(let i=0;i<7;i++)if(now[i]>before[i])arrivalActorId=i*5+now[i]-1}},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
  addEventListener('resize',resize);resize();home();requestAnimationFrame(draw);
 })();
