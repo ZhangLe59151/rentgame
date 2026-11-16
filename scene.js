@@ -46,6 +46,7 @@
  function residentialHouse(i){const h=HOME_PLOTS[i],floors=state.homes[i],apt=h.type==='apartment',w=apt?42:45,step=apt?15:23;
   ctx.save();ctx.translate(h.x,h.y);ellipse(ctx,4,10,w+12,18,'#527d6422');
   if(!floors){ctx.setLineDash([5,6]);line(ctx,[[-w,0],[0,20],[w,-1],[0,-22],[-w,0]],'#c0b89a',1.5);ctx.setLineDash([]);ctx.restore();return}
+  if(!apt){villaEstate(i,floors);ctx.restore();return}
   // Floors are drawn separately: the visible building grows with every upgrade.
   poly(ctx,[[-w-8,3],[0,27],[w+12,3],[0,-22]],'#d9c9a2');
   if(!apt){poly(ctx,[[w+8,0],[w+29,11],[7,43],[-28,29]],'#bfd0a1');for(let j=0;j<4;j++)flower(ctx,2+j*13,31-j*5,['#deb5b4','#f1d297'][j%2],.8);line(ctx,[[w+30,11],[7,45],[-29,30]],'#f1e6c3',2)}
@@ -61,6 +62,39 @@
   poly(ctx,[[-12,-3],[-2,2],[-2,12],[-12,7]],'#8b9d82');round(ctx,18,2,8,7,2,'#92ac8a');
   if(buildingHome===i&&t<buildingUntil){const y=-floors*step;line(ctx,[[-w-10,18],[-w-10,y-30],[w+12,y-30],[w+12,6]],'#c2ab7e',2);for(let j=0;j<4;j++)line(ctx,[[-w-10,y-17+j*14],[w+12,y-17+j*14]],'#d7c59e',1);crate(-w-15,20)}
   ctx.restore()
+ }
+ function villaEstate(i,floors){
+  const roof=['#b9826d','#829d8d','#b79777','#8c9fa5'][i-2],height=25*floors,top=-height;
+  // An enclosed garden and a broad, stepped house, rather than stacked window rows.
+  poly(ctx,[[-69,1],[-5,-30],[71,3],[12,49]],'#b8c99c');
+  poly(ctx,[[-43,9],[3,-13],[51,11],[5,36]],'#e9dcc0');
+  line(ctx,[[6,36],[17,43]],'#d4c09a',9);
+  for(const [x,y]of [[-57,6],[-44,13],[-31,20],[42,26],[54,19],[66,12]]){round(ctx,x,y-7,10,8,4,'#91ac79');if(i%2===0)flower(ctx,x+5,y-7,'#e6c2b6',.65)}
+  // Pitched roof over a low side wing; the main volume gains a distinct floor each time.
+  poly(ctx,[[-49,0],[-15,16],[-15,-7],[-49,-23]],'#f6e6c6');poly(ctx,[[-15,16],[9,4],[9,-19],[-15,-7]],'#d5c9a5');
+  poly(ctx,[[-55,-23],[-29,-47],[-9,-39],[-10,-3]],roof);poly(ctx,[[-29,-47],[16,-24],[11,-14],[-10,-3],[-9,-39]],roof);line(ctx,[[-29,-47],[16,-24]],'#f1dec0',2);
+  poly(ctx,[[-13,6],[29,24],[29,24-height],[-13,6-height]],'#fbefd4');poly(ctx,[[29,24],[58,10],[58,10-height],[29,24-height]],'#ddd4b3');
+  for(let floor=0;floor<floors;floor++){const y=-floor*25;
+   // Tall French doors with shutters and an individual balcony upstairs.
+   poly(ctx,[[0,y+3],[20,y+12],[20,y-5],[0,y-14]],'#85b6b6');line(ctx,[[10,y+7],[10,y-9]],'#faf0d6',1.4);line(ctx,[[0,y-5],[20,y+4]],'#faf0d6',1);
+   line(ctx,[[-3,y-14],[-3,y+3]],roof,3);line(ctx,[[23,y-3],[23,y+14]],roof,3);
+   poly(ctx,[[37,y+13],[49,y+7],[49,y-6],[37,y]],'#8bb8b7');line(ctx,[[43,y+10],[43,y-3]],'#f8e9cd',1);
+   if(floor>0){poly(ctx,[[-3,y+6],[24,y+18],[35,y+12],[8,y]],'#d3b991');line(ctx,[[-3,y+6],[-3,y-3],[24,y+9],[35,y+3],[35,y+12]],'#f4ead1',2);for(let j=0;j<4;j++)line(ctx,[[j*7,y+j*3],[j*7,y+8+j*3]],'#f4ead1',1)}
+  }
+  // Two roof planes, ridge, chimney and dormer make the villa silhouette unmistakable.
+  poly(ctx,[[-20,top+5],[5,top-29],[30,top-18],[30,top+29]],roof);poly(ctx,[[5,top-29],[65,top],[60,top+12],[30,top+29],[30,top-18]],roof);
+  line(ctx,[[5,top-29],[65,top]],'#ead3b3',2);line(ctx,[[-20,top+5],[30,top+29],[60,top+12]],'#f5e3c6',2);
+  for(let j=0;j<4;j++)line(ctx,[[10+j*9,top-24+j*4],[34+j*6,top+17-j*3]],'#795d4b25',1);
+  poly(ctx,[[43,top-10],[50,top-13],[50,top-30],[43,top-27]],'#d2bea1');poly(ctx,[[39,top-29],[48,top-34],[55,top-30],[46,top-25]],'#eee0bf');
+  if(floors>=2){poly(ctx,[[18,top+1],[27,top+6],[27,top-6],[18,top-11]],'#f4e5c5');poly(ctx,[[15,top-11],[22,top-20],[32,top-8],[27,top-4]],roof);poly(ctx,[[21,top-1],[25,top+1],[25,top-5],[21,top-7]],'#8eb6b4')}
+  // A separate shaded terrace, porch steps, front gate and flower beds.
+  poly(ctx,[[17,28],[46,40],[67,30],[38,17]],'#cdb88e');for(let j=0;j<4;j++)line(ctx,[[23+j*8,29+j*3],[42+j*6,20+j*3]],'#b8a178',.8);
+  line(ctx,[[20,28],[20,3],[49,17],[49,39]],'#e6d6b5',2.5);poly(ctx,[[15,2],[35,-8],[56,3],[36,13]],'#e9d9b8');line(ctx,[[20,4],[49,18]],'#b9aa85',1);
+  round(ctx,-36,-13,11,18,2,'#8da18c');ellipse(ctx,-28,-4,1,1,'#f2d497');
+  line(ctx,[[-66,12],[-9,40]],'#f6ecd4',2);line(ctx,[[24,43],[71,18]],'#f6ecd4',2);for(const [x,y]of [[-66,12],[-48,21],[-29,31],[-9,40],[24,43],[42,33],[59,24],[71,18]])line(ctx,[[x,y],[x,y-9]],'#eee4ca',2);
+  if(floors>=2){ellipse(ctx,-47,20,10,4,'#e5d4af');line(ctx,[[-47,20],[-47,8]],'#c1ae88',2);poly(ctx,[[-60,8],[-47,-3],[-34,8],[-47,13]],'#e7c49e');round(ctx,-59,24,7,6,2,'#bba57f');round(ctx,-38,28,7,6,2,'#bba57f')}
+  if(floors>=3){poly(ctx,[[-69,-3],[-49,-13],[-27,-2],[-48,9]],'#f3e5c6');poly(ctx,[[-65,-3],[-49,-10],[-32,-2],[-48,6]],'#91c3c2');line(ctx,[[-60,-2],[-49,-7],[-37,-2]],'#d5eeDF',1);round(ctx,51,31,17,6,2,'#f1dfba')}
+  if(buildingHome===i&&t<buildingUntil){line(ctx,[[-57,17],[-57,top-32],[67,top-32],[67,24]],'#c1ab80',2);crate(-62,25)}
  }
  function constructionPose(id,target){if(buildingHome===null||t>=buildingUntil)return target;const actor=working()?0:35;if(id!==actor)return target;const h=HOME_PLOTS[buildingHome];return{x:h.x-30,y:h.y+23,face:1,building:true}}
  function house(x,y,type,level=1,scale=1){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);const tall=type===3?26:0,col=TYPES[type].color;
