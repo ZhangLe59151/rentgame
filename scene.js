@@ -1,7 +1,7 @@
 'use strict';
 (()=>{
  const canvas=$('world'),ctx=canvas.getContext('2d',{alpha:false});
- let W=0,H=0,DPR=1,t=0,lastFrame=0,effectTime=0,hits=[],particles=[],boatFlash=9,arrivalActorId=null,disembarkStart=0,disembarkUntil=0,focusTarget=null,lastIncomePulse=-1,terrainKey='',terrain;
+ let W=0,H=0,DPR=1,t=0,lastFrame=0,effectTime=0,hits=[],particles=[],boatFlash=9,arrivalActorId=null,disembarkStart=0,disembarkUntil=0,focusTarget=null,lastIncomePulse=-1,terrainKey='',terrain,buildingHome=null,buildingUntil=0;
  const camera={x:550,y:500,zoom:1.25},pointers=new Map();let gesture=null,tapStart=null,moved=false;
  let reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const colors=['#d88773','#769b98','#c7a45d','#809a70','#8c91ad','#cc9874'];
@@ -26,20 +26,43 @@
  function lamp(c,x,y){line(c,[[x,y],[x,y-36]],'#8fa184',3);round(c,x-5,y-43,10,12,3,'#fff1bb');ellipse(c,x,y-38,13,13,'#fff7bd25')}
  function rebuildTerrain(){terrain=document.createElement('canvas');terrain.width=1300;terrain.height=1250;const c=terrain.getContext('2d');
   island(c,550,415,350,173,1);
-  line(c,[[335,426],[445,494],[565,463],[715,470]],'#e3d4a6',22);line(c,[[540,290],[550,452]],'#e3d4a6',16);
-  bridge(c,267,442,170,502);poly(c,[[132,494],[182,474],[216,492],[166,516]],'#d3b586');line(c,[[141,495],[183,479]],'#b79b72',2);
+  line(c,[[320,455],[390,465],[550,435],[700,465],[790,455]],'#e3d4a6',16);line(c,[[390,465],[370,505],[550,550],[710,535],[790,455]],'#e3d4a6',12);line(c,[[550,435],[550,310]],'#e3d4a6',12);
+  if(has('fish')){island(c,220,532,125,66,3);bridge(c,300,458,267,497);bridge(c,267,497,170,520)}poly(c,[[132,494],[182,474],[216,492],[166,516]],'#d3b586');line(c,[[141,495],[183,479]],'#b79b72',2);
   bridge(c,700,285,743,239);bridge(c,743,239,752,228);line(c,[[700,285],[682,310],[650,340]],'#e3d4a6',11);lamp(c,715,274);
-  ellipse(c,752,408,36,19,'#8fb9a2');ellipse(c,752,405,31,15,'#9bc9bf');ellipse(c,751,401,18,5,'#bfe0c8');
+  ellipse(c,550,427,25,11,'#d7d6b4');ellipse(c,550,423,20,9,'#a7c8bc');bench(c,370,482);bench(c,713,500);
   if(has('park')){bench(c,605,508);lamp(c,365,457);lamp(c,660,500);}
   for(const [x,y]of [[306,347],[337,310],[772,332],[810,371],[305,433],[731,517]])tree(c,x,y,.8);
   palm(c,279,475,.8);palm(c,840,447,.8);palm(c,675,271,.8);
   if(has('park'))for(let i=0;i<13;i++)flower(c,490+i*5,275+Math.sin(i)*6,i%2?'#e8c4b7':'#f2e8b4');
+  if(has('cabin')){bridge(c,240,747,180,822);island(c,170,910,145,94,24);line(c,[[180,839],[88,938],[212,915]],'#e3d4a6',13);tree(c,66,900,.6);lamp(c,247,938)}
+  if(has('cafe')){bridge(c,850,443,936,431);island(c,1040,433,141,84,26);line(c,[[936,431],[1058,450],[1118,470]],'#e3d4a6',14);palm(c,1146,421,.7);lamp(c,1117,491)}
   if(has('bbq')){bridge(c,380,537,310,603);island(c,280,666,180,98,7);line(c,[[245,622],[270,703],[360,695]],'#e6d5a8',16);for(const [x,y]of [[151,660],[388,649],[305,588]])tree(c,x,y,.7);lamp(c,337,724);for(let i=0;i<8;i++)flower(c,173+i*8,712+i%2*4)}
   if(has('harbor')){bridge(c,750,545,803,593);island(c,832,678,168,96,11);bridge(c,951,717,1063,761);for(const [x,y]of [[945,645],[755,637]])palm(c,x,y,.8);lamp(c,897,733)}
   if(has('park')){bridge(c,360,748,453,825);island(c,510,917,187,102,15);line(c,[[395,899],[510,897],[619,957]],'#e5d5a6',15);for(const [x,y]of [[355,940],[633,908]])tree(c,x,y,.8);for(let j=0;j<3;j++)for(let i=0;i<9;i++)flower(c,490+i*10,857+j*12,['#e4b9b1','#efd7a2','#d4c4dd'][j],1.2);lamp(c,594,1001)}
   if(has('stage')){bridge(c,655,960,740,999);island(c,835,1026,156,84,22);bench(c,923,1044);palm(c,909,997,.8);for(let i=0;i<7;i++)lamp(c,730+i*28,988-Math.sin(i/6*Math.PI)*15)}
   terrainKey=state.facilities.join();
  }
+ function atWork(i,fn){const d=workOffset(i);ctx.save();ctx.translate(d.x,d.y);fn();ctx.restore()}
+ function residentialHouse(i){const h=HOME_PLOTS[i],floors=state.homes[i],apt=h.type==='apartment',w=apt?42:45,step=apt?15:23;
+  ctx.save();ctx.translate(h.x,h.y);ellipse(ctx,4,10,w+12,18,'#527d6422');
+  if(!floors){ctx.setLineDash([5,6]);line(ctx,[[-w,0],[0,20],[w,-1],[0,-22],[-w,0]],'#c0b89a',1.5);ctx.setLineDash([]);ctx.restore();return}
+  // Floors are drawn separately: the visible building grows with every upgrade.
+  poly(ctx,[[-w-8,3],[0,27],[w+12,3],[0,-22]],'#d9c9a2');
+  if(!apt){poly(ctx,[[w+8,0],[w+29,11],[7,43],[-28,29]],'#bfd0a1');for(let j=0;j<4;j++)flower(ctx,2+j*13,31-j*5,['#deb5b4','#f1d297'][j%2],.8);line(ctx,[[w+30,11],[7,45],[-29,30]],'#f1e6c3',2)}
+  for(let floor=0;floor<floors;floor++){const y=-floor*step;
+   poly(ctx,[[-w,y-8],[0,y+12],[0,y+12-step],[-w,y-8-step]],apt?'#f2e8ca':'#faf0d3');
+   poly(ctx,[[0,y+12],[w,y-8],[w,y-8-step],[0,y+12-step]],apt?'#c8d8cc':'#d5d6b4');
+   line(ctx,[[-w,y-8],[0,y+12],[w,y-8]],'#b8c9b1',1);
+   for(let j=0;j<2;j++){const x=-31+j*17,yy=y-9+j*8;poly(ctx,[[x,yy],[x+10,yy+5],[x+10,yy+5-step*.53],[x,yy-step*.53]],'#86b8b8');const rx=10+j*16,ry=y+4-j*8;poly(ctx,[[rx,ry],[rx+9,ry-4],[rx+9,ry-4-step*.53],[rx,ry-step*.53]],'#86b8b8');if((floor+j+i)%3===0)line(ctx,[[rx+2,ry-2],[rx+7,ry-4]],'#f6df9c',2)}
+  }
+  const roof=-floors*step;
+  if(apt){poly(ctx,[[-w-4,roof-8],[0,roof-30],[w+4,roof-8],[0,roof+14]],'#86aaa5');line(ctx,[[-w-4,roof-8],[0,roof+14],[w+4,roof-8]],'#f4e9c6',3);round(ctx,-15,roof-22,20,8,2,'#b8c7af');for(let j=0;j<2;j++)flower(ctx,19+j*9,roof-8-j*4,'#d8bdac',.8)}
+  else{poly(ctx,[[-w-7,roof-8],[-8,roof-40],[w+7,roof-8],[0,roof+15]],i%2?'#bd947e':'#8fa99a');line(ctx,[[-w-7,roof-8],[0,roof+15],[w+7,roof-8]],'#f2ddbd',2)}
+  poly(ctx,[[-12,-3],[-2,2],[-2,12],[-12,7]],'#8b9d82');round(ctx,18,2,8,7,2,'#92ac8a');
+  if(buildingHome===i&&t<buildingUntil){const y=-floors*step;line(ctx,[[-w-10,18],[-w-10,y-30],[w+12,y-30],[w+12,6]],'#c2ab7e',2);for(let j=0;j<4;j++)line(ctx,[[-w-10,y-17+j*14],[w+12,y-17+j*14]],'#d7c59e',1);crate(-w-15,20)}
+  ctx.restore()
+ }
+ function constructionPose(id,target){if(buildingHome===null||t>=buildingUntil)return target;const actor=working()?0:35;if(id!==actor)return target;const h=HOME_PLOTS[buildingHome];return{x:h.x-30,y:h.y+23,face:1,building:true}}
  function house(x,y,type,level=1,scale=1){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);const tall=type===3?26:0,col=TYPES[type].color;
   ellipse(ctx,8,9,53,17,'#4f796226');poly(ctx,[[-47,0],[2,21],[55,-3],[8,-24]],'#d8c59a');
   poly(ctx,[[-42,-12-tall],[2,7-tall],[2,11],[-42,-8]],'#fff2cb');poly(ctx,[[2,7-tall],[49,-14-tall],[49,-5],[2,14]],'#dfd1a6');
@@ -125,9 +148,9 @@
   ctx.restore();hits.push({kind:'person',role,id,x,y:y-18,r:22*scale})
  }
  function workerPose(job){if(!job.path)return {x:job.x,y:job.y,face:job.face};const path=job.path,phase=((t*.115+job.id*.071)%1)*(path.length-1),segment=Math.floor(phase),k=phase-segment,a=path[segment],b=path[segment+1];return{x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,face:b[0]>=a[0]?1:-1}}
- function walker(id,region=0){const main=[[340,418],[390,480],[575,500],[735,467],[715,395],[565,402],[480,380],[360,401]],r=REGIONS[region],path=region===0?main:[[r.x-65,r.y+15],[r.x-15,r.y+40],[r.x+65,r.y+15],[r.x+25,r.y-15]];
-  const p=(t*.055+id*.19)%1*path.length,i=Math.floor(p),k=p-i,a=path[i],b=path[(i+1)%path.length],target={x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,face:b[0]>a[0]?1:-1},pose=arrivalPose(id,target);
-  return{x:pose.x,y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':has('harbor')&&id%7===0?'carry':'walk',id,1,pose.face)}
+ function walker(id,region=0){const main=[[320,455],[390,465],[550,435],[700,465],[790,455],[710,535],[550,550],[370,505]],r=REGIONS[region],path=region===0?main:[[r.x-65,r.y+15],[r.x-15,r.y+40],[r.x+65,r.y+15],[r.x+25,r.y-15]];
+  const p=(t*.055+id*.19)%1*path.length,i=Math.floor(p),k=p-i,a=path[i],b=path[(i+1)%path.length],target={x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,face:b[0]>a[0]?1:-1},pose=constructionPose(id,arrivalPose(id,target));
+  return{x:pose.x,y:pose.y,draw:()=>resident(pose.x,pose.y,pose.building?'hammer':pose.arriving?'walk':has('harbor')&&id%7===0?'carry':'walk',id,1,pose.face)}
  }
  function facilityMarker(i,x,y,locked){const scale=baseScale()*camera.zoom,screen=worldToScreen(x,y);if(screen.x<18||screen.x>W-18||screen.y<155||screen.y>H-155)return;const r=13/scale;ellipse(ctx,x,y,r,r,locked?'#fff5d4cf':'#fffbe3b5');text(ctx,locked?'＋':ACTIVITIES[i].icon,x,y+4/scale,14/scale,locked?'#a0a987':'#7f987b');hits.push({kind:'facility',i,x,y,r:22/scale})}
  function label(str,x,y,locked=false){const w=str.length*12+36;round(ctx,x-w/2,y-17,w,31,15,locked?'#e3efe6af':'#fff7ddd9');text(ctx,(locked?'⌑ ':'')+str,x,y+3,12,locked?'#789c96':'#728970');if(locked)hits.push({kind:'region',x,y,r:55})}
@@ -171,7 +194,7 @@
   const p=ferryRoute(k);boat(p.x,p.y,1.05,leaving?1:-1,moving,opacity)
  }
  function arrivalPose(id,target){if(id!==arrivalActorId||t>=disembarkUntil)return target;const progress=Math.max(0,Math.min(1,(t-disembarkStart)/8.5));
-  const after=target.y>580&&target.x<700?[[550,430],[385,526],[315,603]]:target.y>580?[[735,480],[790,586]]:[[550,400]];
+  const after=target.y>800&&target.x<300?[[550,430],[385,526],[315,603],[230,745],[180,822],[140,890]]:target.x>930&&target.y<550?[[700,435],[850,443],[936,431]]:target.y>580&&target.x<700?[[550,430],[385,526],[315,603]]:target.y>580?[[735,480],[790,586]]:[[550,400]];
   const points=[[752,228],[735,247],[703,280],[686,303],...after,[target.x,target.y]],lengths=[];let total=0;
   for(let j=0;j<points.length-1;j++){const d=Math.hypot(points[j+1][0]-points[j][0],points[j+1][1]-points[j][1]);lengths.push(d);total+=d}
   let distance=progress*total;for(let j=0;j<lengths.length;j++){if(distance<=lengths[j]||j===lengths.length-1){const a=points[j],b=points[j+1],u=lengths[j]?Math.min(1,distance/lengths[j]):1;return{x:a[0]+(b[0]-a[0])*u,y:a[1]+(b[1]-a[1])*u,face:b[0]>=a[0]?1:-1,arriving:true}}distance-=lengths[j]}return target
@@ -193,20 +216,21 @@
   const entities=[];
   if(has('fish'))entities.push({y:420,draw:fishingStation},{y:502,draw:()=>crate(211,505)});
   if(has('bbq'))entities.push({y:590,draw:bbqRoof},{y:625,draw:bbqStations},{y:600,draw:barbecue});
-  if(has('cabin')){entities.push({y:385,draw:()=>extraStations(2)},{y:345,draw:()=>house(440,345,0,state.facilities[2])},{y:388,draw:workshop},{y:390,draw:workshopUpgrades});if(state.facilities[2]>=2)entities.push({y:325,draw:()=>house(565,325,1,1,.85)});if(state.facilities[2]>=4)entities.push({y:455,draw:()=>house(570,455,2,1,.9)})}
-  if(has('cafe'))entities.push({y:375,draw:cafeUpgrades},{y:390,draw:()=>extraStations(4)},{y:395,draw:coffee});
+  if(has('cabin'))entities.push({y:885,draw:()=>atWork(2,()=>extraStations(2))},{y:888,draw:()=>atWork(2,workshop)},{y:890,draw:()=>atWork(2,workshopUpgrades)});
+  if(has('cafe'))entities.push({y:375,draw:()=>atWork(4,cafeUpgrades)},{y:390,draw:()=>atWork(4,()=>extraStations(4))},{y:395,draw:()=>atWork(4,coffee)});
+  for(let i=0;i<HOME_PLOTS.length;i++){const h=HOME_PLOTS[i];entities.push({y:h.y,draw:()=>residentialHouse(i)});hits.push({kind:'home',i,x:h.x,y:h.y-20,r:43})}
   if(has('park')){entities.push({y:850,draw:parkUpgrades},{y:865,draw:()=>extraStations(3)});if(state.facilities[3]>=3)entities.push({y:866,draw:windmill})}
   if(has('harbor'))entities.push({y:710,draw:harborEquipment},{y:711,draw:()=>extraStations(5)},{y:734,draw:()=>crate(930,734)});
   if(has('stage'))entities.push({y:990,draw:stageUpgrades},{y:1000,draw:stage});
   const staff=staffing();
   for(let i=0;i<ACTIVITIES.length;i++)if(state.facilities[i]){
-   for(const job of jobPlan(i)){const worker=arrivalPose(job.id,workerPose(job));entities.push({y:worker.y,draw:()=>resident(worker.x,worker.y,worker.arriving?'walk':job.role,job.id,1.1,worker.face,worker.arriving?1:state.facilities[i])})}
+   for(const job of jobPlan(i)){const worker=constructionPose(job.id,arrivalPose(job.id,workerPose(job)));entities.push({y:worker.y,draw:()=>resident(worker.x,worker.y,worker.building?'hammer':worker.arriving?'walk':job.role,job.id,1.1,worker.face,worker.arriving?1:state.facilities[i])})}
    const a=ACTIVITIES[i];hits.push({kind:'facility',i,x:a.x,y:a.y-18,r:55})
   }
   const areas=[0,...(has('bbq')?[1]:[]),...(has('harbor')?[2]:[]),...(has('park')?[3]:[]),...(has('stage')?[4]:[])];
   for(let j=0;j<idle();j++){const id=35+j;const region=j<5?0:areas[j%areas.length];if(has('stage')&&j<2)entities.push({y:1060-j*15,draw:()=>resident(855+j*22,1060-j*15,'dance',id,1.1)});else entities.push(walker(id,region))}
   entities.sort((a,b)=>a.y-b.y).forEach(e=>e.draw());
-  const markers=[[112,593],[110,759],[321,477],[345,1000],[846,502],[1130,848],[1000,1104]];
+  const markers=[[112,593],[110,759],[125,1010],[345,1000],[1190,513],[1130,848],[1000,1104]];
   if(!$('game').classList.contains('zen')){
    for(let i=0;i<7;i++)if(state.facilities[i]){const [x,y]=markers[i];facilityMarker(i,x,y,false)}
    const next=nextIndex();if(next>=0){const a=ACTIVITIES[next],ghost=[1,3,5,6].includes(next);if(ghost){ctx.save();ctx.globalAlpha=.24;ellipse(ctx,a.x,a.y,100,46,'#d6e8d3');ctx.restore()}facilityMarker(next,a.x,a.y+(ghost?0:-35),true)}
@@ -223,7 +247,7 @@
  function focus(x,y,zoom=1.5){focusTarget={x,y,zoom}}
  function inspectWork(i){const a=ACTIVITIES[i];focus(i===1?300:a.x,i===1?678:i===0?515:a.y,1.95)}
  function tap(x,y){const p=screenToWorld(x,y);const hit=[...hits].reverse().find(h=>Math.hypot(h.x-p.x,h.y-p.y)<h.r);if(!hit)return;
-  if(hit.kind==='facility')openActivity(hit.i);
+  if(hit.kind==='facility')openActivity(hit.i);if(hit.kind==='home')openHousing();
   if(hit.kind==='person'){const words={bbq:['翻个面吧','烤鱼好香'],walk:['你好呀','海风真好','去散个步'],carry:['新鲜的鱼','借过一下'],hammer:['快修好啦','笃笃笃'],fish:['等一条鱼','嘘…上钩了'],water:['慢慢长大','花开啦'],coffee:['来杯咖啡？','刚刚煮好'],read:['再读一页','真舒服呀'],music:['♪ 海的歌','一起听吧'],dance:['啦啦啦','跟着摇摆']};const list=words[hit.role]||[`${ROLE_NAMES[hit.role]||'工作'}中`, '配合得真好'];particles.push({x:hit.x,y:hit.y-30,kind:'greet',msg:list[Math.floor(hash(t)*list.length)],start:effectTime,life:2.8,seed:0})}
  }
  function point(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
@@ -234,6 +258,6 @@
  canvas.addEventListener('wheel',e=>{e.preventDefault();focusTarget=null;camera.zoom=Math.max(.65,Math.min(3.8,camera.zoom*Math.exp(-e.deltaY*.001)))},{passive:false});
  canvas.addEventListener('keydown',e=>{const keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','-','Home'];if(!keys.includes(e.key))return;e.preventDefault();focusTarget=null;if(e.key==='Home')home();if(e.key==='ArrowUp')camera.y-=35;if(e.key==='ArrowDown')camera.y+=35;if(e.key==='ArrowLeft')camera.x-=35;if(e.key==='ArrowRight')camera.x+=35;if(e.key==='+')camera.zoom=Math.min(3.8,camera.zoom*1.15);if(e.key==='-')camera.zoom=Math.max(.65,camera.zoom/1.15)});
  $('zoomIn').onclick=()=>{focusTarget=null;camera.zoom=Math.min(3.8,camera.zoom*1.25)};$('zoomOut').onclick=()=>{focusTarget=null;camera.zoom=Math.max(.65,camera.zoom/1.25)};$('recenter').onclick=home;
- window.islandScene={reset(){particles=[];hits=[];boatFlash=9;arrivalActorId=null;disembarkStart=0;disembarkUntil=0;t=0;effectTime=0;lastIncomePulse=-1;terrainKey='';pointers.clear();gesture=null;tapStart=null;moved=false;reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;camera.x=550;camera.y=500;camera.zoom=1.25;home()},home,focus,inspectWork,burst,arrival:(event={})=>{boatFlash=t+9;disembarkStart=t;disembarkUntil=t+8.5;arrivalActorId=null;const before=event.beforeStaff||staffing(),oldIdle=(event.beforePopulation??state.population)-before.reduce((n,v)=>n+v,0);if(idle()>oldIdle)arrivalActorId=35+idle()-1;else{const now=staffing();for(let i=0;i<7;i++)if(now[i]>before[i])arrivalActorId=i*5+now[i]-1}},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
+ window.islandScene={reset(){buildingHome=null;buildingUntil=0;particles=[];hits=[];boatFlash=9;arrivalActorId=null;disembarkStart=0;disembarkUntil=0;t=0;effectTime=0;lastIncomePulse=-1;terrainKey='';pointers.clear();gesture=null;tapStart=null;moved=false;reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;camera.x=550;camera.y=500;camera.zoom=1.25;home()},home,focus,inspectWork,burst,buildHome(i){buildingHome=i;buildingUntil=t+5;burst(HOME_PLOTS[i].x,HOME_PLOTS[i].y,'build')},arrival:(event={})=>{boatFlash=t+9;disembarkStart=t;disembarkUntil=t+8.5;arrivalActorId=null;const before=event.beforeStaff||staffing(),oldIdle=(event.beforePopulation??state.population)-before.reduce((n,v)=>n+v,0);if(idle()>oldIdle)arrivalActorId=35+idle()-1;else{const now=staffing();for(let i=0;i<7;i++)if(now[i]>before[i])arrivalActorId=i*5+now[i]-1}},get reduced(){return reduced},toggleMotion(){reduced=!reduced},screenToWorld,worldToScreen};
  addEventListener('resize',resize);resize();home();requestAnimationFrame(draw);
 })();
