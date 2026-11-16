@@ -5,7 +5,7 @@ const ACTIVITIES=[
  {id:'cabin',name:'小屋工坊',icon:'⌂',cost:490,people:5,rate:8,cap:3,role:'hammer',worker:'阿木',x:470,y:370,desc:'木匠开始敲敲打打，建起海边小屋。工坊持续带来收入和更多居住名额。'},
  {id:'park',name:'风铃公园',icon:'❀',cost:1050,people:8,rate:14,cap:4,role:'water',worker:'阿芽',x:510,y:917,desc:'修起花田与风车。园丁每天浇花、打理公园，游园收益让小岛继续成长。'},
  {id:'cafe',name:'日光咖啡',icon:'☕',cost:2100,people:12,rate:23,cap:5,role:'coffee',worker:'小葵',x:700,y:395,desc:'咖啡师不停磨豆、冲泡。多一个停留的理由，也多一份稳定收入。'},
- {id:'harbor',name:'潮汐渔港',icon:'⚓',cost:4200,people:17,rate:38,cap:6,role:'fish',worker:'阿帆',x:832,y:678,desc:'修通渔港和长栈桥。专业渔夫开始工作，带来更丰富的渔获和居住空间。'},
+ {id:'harbor',name:'潮汐货港',icon:'⚓',cost:4200,people:17,rate:38,cap:6,role:'cargo',worker:'阿帆',x:832,y:678,desc:'修通货港和长栈桥。居民搬运、分拣来往货物，升级后加入吊装设备，为小岛带来贸易收入和居住空间。'},
  {id:'stage',name:'星光乐台',icon:'♫',cost:8400,people:23,rate:65,cap:8,role:'music',worker:'小弦',x:835,y:1026,desc:'让海边响起音乐。乐手持续演出，邻居聚在一起跳舞，演出收益不断增长。'}
 ];
 const REGIONS=[{x:550,y:415},{x:280,y:666},{x:832,y:678},{x:510,y:917},{x:835,y:1026}];
@@ -67,11 +67,11 @@ const WORKFLOWS=[
   [['coffee',716,397,1],['grind',645,417,1],['prep',680,462,1],['serve',758,463,-1,[[719,442],[790,475],[740,488],[719,442]]],['cashier',794,411,-1]]
  ],
  [
-  [['fish',1027,756,1]],
-  [['fish',1041,766,1],['net',982,752,1]],
-  [['operate',1025,749,1],['net',980,779,1],['lookout',959,720,1]],
-  [['fish',1054,783,1],['operate',1023,748,1],['net',979,779,1],['cargo',1011,808,1,[[981,808],[1065,806],[1037,776],[981,808]]]],
-  [['operate',1023,747,1],['net',977,781,1],['sort',1061,801,-1],['cargo',1016,818,1,[[977,816],[1074,817],[1036,778],[977,816]]],['lookout',953,714,1]]
+  [['cargo',1027,756,1]],
+  [['cargo',1041,766,1],['sort',982,752,1]],
+  [['operate',1025,749,1],['cargo',980,779,1],['lookout',959,720,1]],
+  [['sort',1054,783,1],['operate',1023,748,1],['lookout',979,779,1],['cargo',1011,808,1,[[981,808],[1065,806],[1037,776],[981,808]]]],
+  [['operate',1023,747,1],['guide',977,781,1],['sort',1061,801,-1],['cargo',1016,818,1,[[977,816],[1074,817],[1036,778],[977,816]]],['lookout',953,714,1]]
  ],
  [
   [['music',806,1020,1]],
@@ -162,7 +162,7 @@ function restartGame(){
  window.alert('新旅程开始了！\n现在只有 1 位岛民和 100 金币，从第一根鱼竿重新开始吧。');
  lastTick=Date.now();state.last=lastTick;save();
 }
-function openSettings(){modal(`<p class="eyebrow">TAKE YOUR TIME</p><h2>海风里的设置</h2><div class="option-row"><span>小岛时间</span><button id="pause">${paused?'继续生活':'暂停生活'}</button></div><div class="option-row"><span>动画效果</span><button id="motion">${window.islandScene?.reduced?'恢复动画':'减少动画'}</button></div><div class="option-row"><span>当前旅程备份</span><button id="export">导出存档</button></div><div class="option-row"><span>恢复当前玩法存档</span><button id="importButton">导入存档</button></div>${legacyExists?'<div class="option-row"><span>保留的 V1 / V2 旧旅程</span><button id="exportLegacy">导出旧版存档</button></div>':''}<div class="option-row"><span>安装到手机桌面</span><button id="install">安装方法</button></div><section class="restart-zone"><strong>重新开始一座小岛</strong><p>清空此浏览器的当前进度及旧版岛屿存档。</p><button id="restart" class="restart-button">清空存档，重新开始</button></section><p class="note">V8 · 蓝湾渡船与悠闲成长<br>金币自动增长，离线最多累计 4 小时收入与新居民。人数为解锁门槛、不消耗；设施等级决定岗位数，每升一级多 1 位工作人员；需要有空闲岛民加入。进度保存在当前浏览器。<br>成长版本共用当前旅程，更新不重置进度；V1 / V2 备份独立保留。</p>`);$('restart').onclick=restartGame;$('pause').onclick=()=>{paused=!paused;lastTick=Date.now();openSettings()};$('motion').onclick=()=>{window.islandScene?.toggleMotion();openSettings()};$('export').onclick=()=>{save();download(state,'航途小岛-成长存档.json')};$('importButton').onclick=()=>$('import').click();if($('exportLegacy'))$('exportLegacy').onclick=()=>{try{download(JSON.parse(localStorage.getItem(LEGACY_KEY)),'航途小岛-旧版存档.json')}catch{toast('没有找到旧版存档。')}};$('install').onclick=async()=>{if(installPrompt){await installPrompt.prompt();installPrompt=null}else toast('iPhone：Safari 分享 → 添加到主屏幕；Android：浏览器菜单 → 安装应用。')}}
+function openSettings(){modal(`<p class="eyebrow">TAKE YOUR TIME</p><h2>海风里的设置</h2><div class="option-row"><span>小岛时间</span><button id="pause">${paused?'继续生活':'暂停生活'}</button></div><div class="option-row"><span>动画效果</span><button id="motion">${window.islandScene?.reduced?'恢复动画':'减少动画'}</button></div><div class="option-row"><span>当前旅程备份</span><button id="export">导出存档</button></div><div class="option-row"><span>恢复当前玩法存档</span><button id="importButton">导入存档</button></div>${legacyExists?'<div class="option-row"><span>保留的 V1 / V2 旧旅程</span><button id="exportLegacy">导出旧版存档</button></div>':''}<div class="option-row"><span>安装到手机桌面</span><button id="install">安装方法</button></div><section class="restart-zone"><strong>重新开始一座小岛</strong><p>清空此浏览器的当前进度及旧版岛屿存档。</p><button id="restart" class="restart-button">清空存档，重新开始</button></section><p class="note">V9 · 蓝湾渡船与悠闲成长<br>金币自动增长，离线最多累计 4 小时收入与新居民。人数为解锁门槛、不消耗；设施等级决定岗位数，每升一级多 1 位工作人员；需要有空闲岛民加入。进度保存在当前浏览器。<br>成长版本共用当前旅程，更新不重置进度；V1 / V2 备份独立保留。</p>`);$('restart').onclick=restartGame;$('pause').onclick=()=>{paused=!paused;lastTick=Date.now();openSettings()};$('motion').onclick=()=>{window.islandScene?.toggleMotion();openSettings()};$('export').onclick=()=>{save();download(state,'航途小岛-成长存档.json')};$('importButton').onclick=()=>$('import').click();if($('exportLegacy'))$('exportLegacy').onclick=()=>{try{download(JSON.parse(localStorage.getItem(LEGACY_KEY)),'航途小岛-旧版存档.json')}catch{toast('没有找到旧版存档。')}};$('install').onclick=async()=>{if(installPrompt){await installPrompt.prompt();installPrompt=null}else toast('iPhone：Safari 分享 → 添加到主屏幕；Android：浏览器菜单 → 安装应用。')}}
 $('closeSheet').onclick=closeSheet;$('sheet').addEventListener('click',e=>{if(e.target===$('sheet')){const r=$('sheet').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeSheet()}});
 $('collect').onclick=()=>nextIndex()<0?openFacilities():openActivity(nextIndex());$('buildMenu').onclick=openFacilities;$('expandMenu').onclick=openRoute;$('residentsMenu').onclick=openResidents;$('islandInfo').onclick=openJournal;$('settings').onclick=openSettings;$('quest').onclick=()=>nextIndex()<0?openJournal():openActivity(nextIndex());$('cancelBuild').onclick=()=>{};
 $('fullScreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else toast('iPhone 可添加到主屏幕，获得独立全屏体验。')}catch{toast('可添加到主屏幕，获得独立全屏体验。')}};
