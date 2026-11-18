@@ -96,7 +96,7 @@
   if(floors>=3){poly(ctx,[[-69,-3],[-49,-13],[-27,-2],[-48,9]],'#f3e5c6');poly(ctx,[[-65,-3],[-49,-10],[-32,-2],[-48,6]],'#91c3c2');line(ctx,[[-60,-2],[-49,-7],[-37,-2]],'#d5eeDF',1);round(ctx,51,31,17,6,2,'#f1dfba')}
   if(buildingHome===i&&t<buildingUntil){line(ctx,[[-57,17],[-57,top-32],[67,top-32],[67,24]],'#c1ab80',2);crate(-62,25)}
  }
- function constructionPose(id,target){if(buildingHome===null||t>=buildingUntil)return target;const actor=0;if(id!==actor)return target;const h=HOME_PLOTS[buildingHome];return{x:h.x-30,y:h.y+23,face:1,building:true}}
+ function constructionPose(id,target){if(state.people[id]?.job!=='builder'||!builderOnDuty()||buildingHome===null||t>=buildingUntil)return target;const actor=0;if(id!==actor)return target;const h=HOME_PLOTS[buildingHome];return{x:h.x-30,y:h.y+23,face:1,building:true}}
  function house(x,y,type,level=1,scale=1){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);const tall=type===3?26:0,col=TYPES[type].color;
   ellipse(ctx,8,9,53,17,'#4f796226');poly(ctx,[[-47,0],[2,21],[55,-3],[8,-24]],'#d8c59a');
   poly(ctx,[[-42,-12-tall],[2,7-tall],[2,11],[-42,-8]],'#fff2cb');poly(ctx,[[2,7-tall],[49,-14-tall],[49,-5],[2,14]],'#dfd1a6');
