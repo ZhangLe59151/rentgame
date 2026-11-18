@@ -156,6 +156,8 @@
   }
   if(level>=4){ellipse(ctx,3,-13,2,2,'#e8c86a');line(ctx,[[-6,-19],[5,-19]],'#fff2ca',1)}
   if(level===5){poly(ctx,[[-4,-23],[0,-19],[4,-23],[0,-25]],'#dfb56b')}
+  if(role==='sip'){const lift=(Math.sin(t*1.8+id)+1)*4;round(ctx,9,-17-lift,8,8,2,'#fff2d2');steam(13,-19-lift);line(ctx,[[7,-18],[12,-12-lift]],'#e9caa4',3)}
+  if(role==='eat'){ellipse(ctx,14,-11,11,3,'#f6e9c7');ellipse(ctx,14,-13,6,2,'#d2a87e');line(ctx,[[8,-18],[17,-23+Math.sin(t*2+id)*4]],'#e9caa4',3)}
   if(role==='fish'){const lift=Math.sin(t*.8+id)*4;line(ctx,[[10,-16],[31,-56-lift]],level>=3?'#739baa':'#8c8d70',level>=4?3:2);line(ctx,[[31,-56-lift],[52,-9]],'#eff0d79a',.8);ellipse(ctx,52,-6,10+Math.sin(t*2)*3,3,'#e0eee57a');if(Math.sin(t*.8+id)>.96){poly(ctx,[[43,-10],[49,-16],[55,-10],[49,-5]],'#b8d6c5')}}
   if(role==='hammer'){line(ctx,[[12,-15-arm],[19,-25-arm]],'#a89673',3);line(ctx,[[15,-28-arm],[24,-22-arm]],'#94a192',5)}
   if(role==='water'){ellipse(ctx,15,-12,7,5,'#91b5ac');line(ctx,[[20,-12],[28,-6]],'#91b5ac',3);for(let j=0;j<4;j++)ellipse(ctx,29+j*3,-4+(t*14+j*4)%13,1,1.5,'#c9e2d5')}
@@ -235,7 +237,18 @@
   for(let j=0;j<points.length-1;j++){const d=Math.hypot(points[j+1][0]-points[j][0],points[j+1][1]-points[j][1]);lengths.push(d);total+=d}
   let distance=progress*total;for(let j=0;j<lengths.length;j++){if(distance<=lengths[j]||j===lengths.length-1){const a=points[j],b=points[j+1],u=lengths[j]?Math.min(1,distance/lengths[j]):1;return{x:a[0]+(b[0]-a[0])*u,y:a[1]+(b[1]-a[1])*u,face:b[0]>=a[0]?1:-1,arriving:true}}distance-=lengths[j]}return target
  }
- function visitorPose(g){const point=visitorPosition(g),action=visitorAction(g),face=point.face??(action==='concert'?(point.x>ACTIVITIES[6].x?-1:1):action==='fishing'&&point.x<200?-1:1);return{x:point.x,y:point.y,face}}
+ const residentTrips=new Map();let residentTripState=null;
+ function residentTravel(person,life,target){
+  if(residentTripState!==state){residentTrips.clear();residentTripState=state}
+  const zone=life.kind==='work'?(person.job==='builder'?'main':person.job):life.kind==='leisure'?life.venue:'main',key=life.kind+':'+zone,now=t*1000;
+  let trip=residentTrips.get(person.id);
+  if(!trip){trip={key,zone,x:target.x,y:target.y,motion:null};residentTrips.set(person.id,trip)}
+  if(trip.key!==key){const current=visitorPosition(trip,now),route=visitorRoute({...trip,x:current.x,y:current.y,motion:null},zone,target);trip={key,zone,x:target.x,y:target.y,motion:{points:route.points,start:now,end:now+route.duration}};residentTrips.set(person.id,trip)}
+  if(trip.motion&&now<trip.motion.end)return{...visitorPosition(trip,now),arriving:true};
+  trip.motion=null;trip.x=target.x;trip.y=target.y;return target
+ }
+ function visitorRenderTime(){return state.tourTime+(paused?0:Math.max(0,Math.min(250,Date.now()-lastTick)))}
+ function visitorPose(g){const point=visitorPosition(g,visitorRenderTime()),action=visitorAction(g),face=point.face??(action==='concert'?(point.x>ACTIVITIES[6].x?-1:1):action==='fishing'&&point.x<200?-1:1);return{x:point.x,y:point.y,face}}
  function drawVisitor(g,pose){const action=visitorAction(g),moving=action==='walking',seated=action==='coffee'||action==='meal',clock=t+g.id*.7,step=moving?Math.sin(clock*5)*4:0,bob=moving?Math.abs(Math.sin(clock*5))*1.7:Math.sin(clock*1.5)*.4,shirt=['#e6a08a','#83bbc4','#e2c37c','#a4bd91'][g.id%4];
   ctx.save();ctx.translate(pose.x,pose.y);ctx.scale(1.1*pose.face,1.1);ellipse(ctx,0,3,12,4,'#4d7d6427');if(seated){round(ctx,-11,-1,22,5,2,'#baa47d');line(ctx,[[-8,2],[-8,10]],'#b09b75',2);line(ctx,[[8,2],[8,10]],'#b09b75',2)}ctx.translate(0,-bob);
   // Vacation silhouette: wide straw hat, striped shirt, shorts, sandals, sunglasses and backpack.
@@ -258,7 +271,7 @@
  function baseScale(){return Math.min(W/1050,(H-150)/1100)}
  function worldToScreen(x,y){const s=baseScale()*camera.zoom;return{x:(x-camera.x)*s+W/2,y:(y-camera.y)*s+H*.52}}
  function screenToWorld(x,y){const s=baseScale()*camera.zoom;return{x:(x-W/2)/s+camera.x,y:(y-H*.52)/s+camera.y}}
- function draw(ms){requestAnimationFrame(draw);if(ms-lastFrame<(reduced?100:32)||document.hidden)return;const dt=Math.min((ms-lastFrame)/1000,.1);lastFrame=ms;effectTime+=dt;if(!paused&&!reduced)t+=dt;
+ function draw(ms){requestAnimationFrame(draw);if(ms-lastFrame<(reduced?100:16)||document.hidden)return;const dt=Math.min((ms-lastFrame)/1000,.1);lastFrame=ms;effectTime+=dt;if(!paused&&!reduced)t+=dt;
   if(focusTarget){camera.x+=(focusTarget.x-camera.x)*.09;camera.y+=(focusTarget.y-camera.y)*.09;camera.zoom+=(focusTarget.zoom-camera.zoom)*.09;if(Math.abs(camera.x-focusTarget.x)+Math.abs(camera.y-focusTarget.y)<.5)focusTarget=null}
   ctx.setTransform(DPR,0,0,DPR,0,0);const ocean=ctx.createLinearGradient(0,0,0,H);ocean.addColorStop(0,'#a0d7db');ocean.addColorStop(.6,'#84cbd1');ocean.addColorStop(1,'#78bfc9');ctx.fillStyle=ocean;ctx.fillRect(0,0,W,H);
   for(let j=0;j<Math.ceil(H/65)+1;j++)for(let i=0;i<Math.ceil(W/95)+1;i++){const x=i*95+(j%2)*35+Math.sin(t*.2+j)*8,y=j*65+Math.sin(t*.4+i+j)*3;ctx.globalAlpha=.13+Math.sin(t*.5+i)*.05;ctx.beginPath();ctx.ellipse(x,y,11,3,0,.2,Math.PI-.2);ctx.strokeStyle='#eaffed';ctx.lineWidth=1.5;ctx.stroke()}ctx.globalAlpha=1;
@@ -278,11 +291,11 @@
   if(has('stage'))entities.push({y:990,draw:stageUpgrades},{y:1000,draw:stage});
   for(let i=0;i<ACTIVITIES.length;i++)if(state.facilities[i]){const a=ACTIVITIES[i];hits.push({kind:'facility',i,x:a.x,y:a.y-18,r:55})}
   // One entity per awake resident. Profession and schedule decide where that same person is.
-  for(const person of state.people){const life=personLife(person);if(life.kind==='sleep'||life.kind==='home')continue;
-   if(life.kind==='work'&&person.job==='builder'){const pose=constructionPose(person.id,arrivalPose(person.id,{x:604,y:307,face:1}));entities.push({y:pose.y,draw:()=>{if(!pose.building)table(602,299,32);resident(pose.x,pose.y,pose.arriving?'walk':'hammer',person.id,1.05,pose.face,2)}})}
-   else if(life.kind==='work'){const job=jobPlan(person.job).find(j=>j.id===person.id);if(!job)continue;const pose=arrivalPose(person.id,workerPose(job));entities.push({y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':job.role,person.id,1.1,pose.face,pose.arriving?1:state.facilities[person.job])})}
-   else if(life.kind==='leisure'){const places={1:[[315,736],[375,692],[225,707],[345,719]],3:[[600,960],[450,973],[520,924],[615,912]],4:[[1100,485],[1155,437],[1088,430],[1130,471]],6:[[910,1060],[780,1080],[918,1020],[850,1080]]},place=places[life.venue][person.id%4],angle=person.id*2.399+t*.12,pose=arrivalPose(person.id,{x:place[0]+Math.cos(angle)*10,y:place[1]+Math.sin(angle)*6,face:Math.sin(angle)>0?1:-1});entities.push({y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':life.venue===6?'dance':life.venue===4?'relax':'walk',person.id,1,pose.face)})}
-   else entities.push(walker(person.id,0))
+  for(const person of state.people){const life=personLife(person);if(life.kind==='sleep'||life.kind==='home'){const h=HOME_PLOTS[homeForPerson(person.id)]||{x:590,y:325};residentTrips.set(person.id,{key:'home:main',zone:'main',x:h.x,y:h.y,motion:null});continue;}
+   if(life.kind==='work'&&person.job==='builder'){const pose=constructionPose(person.id,residentTravel(person,life,arrivalPose(person.id,{x:604,y:307,face:1})));entities.push({y:pose.y,draw:()=>{if(!pose.building)table(602,299,32);resident(pose.x,pose.y,pose.arriving?'walk':'hammer',person.id,1.05,pose.face,2)}})}
+   else if(life.kind==='work'){const job=jobPlan(person.job).find(j=>j.id===person.id);if(!job)continue;const pose=residentTravel(person,life,arrivalPose(person.id,workerPose(job)));entities.push({y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':job.role,person.id,1.1,pose.face,pose.arriving?1:state.facilities[person.job])})}
+   else if(life.kind==='leisure'){const places={1:[[315,736],[375,692],[225,707],[345,719]],3:[[600,960],[450,973],[520,924],[615,912]],4:[[1100,485],[1155,437],[1088,430],[1130,471]],6:[[910,1060],[780,1080],[918,1020],[850,1080]]},place=places[life.venue][person.id%4],angle=person.id*2.399+t*.12,pose=residentTravel(person,life,arrivalPose(person.id,{x:place[0],y:place[1],face:Math.sin(angle)>0?1:-1}));entities.push({y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':life.venue===6?'dance':life.venue===4?'sip':life.venue===1?'eat':'read',person.id,1,pose.face)})}
+   else{const target={x:470+Math.sin(t*.12+person.id)*100,y:440+Math.cos(t*.12+person.id)*35,face:Math.cos(t*.12+person.id)>=0?1:-1},pose=residentTravel(person,life,target);entities.push({y:pose.y,draw:()=>resident(pose.x,pose.y,'walk',person.id,1,pose.face)})}
   }
   for(let i=0;i<HOME_PLOTS.length;i++)if(state.homes[i]&&state.people.some(p=>homeForPerson(p.id)===i&&isSleeping(p))){const h=HOME_PLOTS[i];entities.push({y:h.y+2,draw:()=>{ellipse(ctx,h.x-9,h.y+15,12,6,'#ede8cf');text(ctx,'z',h.x-9,h.y+18+Math.sin(t)*1.5,10,'#829da4')}})}
   if(!beds()&&isSleeping(state.people[0]))entities.push({y:325,draw:()=>{poly(ctx,[[575,325],[590,294],[613,325]],'#d5bf94');text(ctx,'z',595,291,12,'#7e99a2')}});
