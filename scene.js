@@ -258,7 +258,7 @@
   if(has('stage'))entities.push({y:990,draw:stageUpgrades},{y:1000,draw:stage});
   for(let i=0;i<ACTIVITIES.length;i++)if(state.facilities[i]){const a=ACTIVITIES[i];hits.push({kind:'facility',i,x:a.x,y:a.y-18,r:55})}
   // One entity per awake resident. Profession and schedule decide where that same person is.
-  for(const person of state.people){const life=personLife(person);if(life.kind==='sleep')continue;
+  for(const person of state.people){const life=personLife(person);if(life.kind==='sleep'||life.kind==='home')continue;
    if(life.kind==='work'&&person.job==='builder'){const pose=constructionPose(person.id,arrivalPose(person.id,{x:604,y:307,face:1}));entities.push({y:pose.y,draw:()=>{if(!pose.building)table(602,299,32);resident(pose.x,pose.y,pose.arriving?'walk':'hammer',person.id,1.05,pose.face,2)}})}
    else if(life.kind==='work'){const job=jobPlan(person.job).find(j=>j.id===person.id);if(!job)continue;const pose=arrivalPose(person.id,workerPose(job));entities.push({y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':job.role,person.id,1.1,pose.face,pose.arriving?1:state.facilities[person.job])})}
    else if(life.kind==='leisure'){const places={1:[[315,736],[375,692],[225,707],[345,719]],3:[[600,960],[450,973],[520,924],[615,912]],4:[[1100,485],[1155,437],[1088,430],[1130,471]],6:[[910,1060],[780,1080],[918,1020],[850,1080]]},place=places[life.venue][person.id%4],angle=person.id*2.399+t*.12,pose=arrivalPose(person.id,{x:place[0]+Math.cos(angle)*10,y:place[1]+Math.sin(angle)*6,face:Math.sin(angle)>0?1:-1});entities.push({y:pose.y,draw:()=>resident(pose.x,pose.y,pose.arriving?'walk':life.venue===6?'dance':life.venue===4?'relax':'walk',person.id,1,pose.face)})}
