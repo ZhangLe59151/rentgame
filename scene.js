@@ -268,14 +268,15 @@
  }
  function seagull(x,y,id){const flap=Math.sin(t*3+id)*5;line(ctx,[[x-9,y-flap],[x,y],[x+9,y-flap]],'#f7f6e7',2.5)}
  function resize(){const r=canvas.getBoundingClientRect();W=r.width;H=r.height;DPR=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR)}
- function baseScale(){return Math.min(W/1050,(H-150)/1100)}
- function worldToScreen(x,y){const s=baseScale()*camera.zoom;return{x:(x-camera.x)*s+W/2,y:(y-camera.y)*s+H*.52}}
- function screenToWorld(x,y){const s=baseScale()*camera.zoom;return{x:(x-W/2)/s+camera.x,y:(y-H*.52)/s+camera.y}}
+ function baseScale(){return W<800&&H>W?Math.min(W/1050,Math.max(160,H-390)/1050):Math.min(W/1050,(H-150)/1100)}
+ function sceneCenterY(){return W<800&&H>W?Math.max(250,(H-42)/2):H*.52}
+ function worldToScreen(x,y){const s=baseScale()*camera.zoom;return{x:(x-camera.x)*s+W/2,y:(y-camera.y)*s+sceneCenterY()}}
+ function screenToWorld(x,y){const s=baseScale()*camera.zoom;return{x:(x-W/2)/s+camera.x,y:(y-sceneCenterY())/s+camera.y}}
  function draw(ms){requestAnimationFrame(draw);if(ms-lastFrame<(reduced?100:16)||document.hidden)return;const dt=Math.min((ms-lastFrame)/1000,.1);lastFrame=ms;effectTime+=dt;if(!paused&&!reduced)t+=dt;
-  if(focusTarget){camera.x+=(focusTarget.x-camera.x)*.09;camera.y+=(focusTarget.y-camera.y)*.09;camera.zoom+=(focusTarget.zoom-camera.zoom)*.09;if(Math.abs(camera.x-focusTarget.x)+Math.abs(camera.y-focusTarget.y)<.5)focusTarget=null}
+  if(focusTarget){camera.x+=(focusTarget.x-camera.x)*.09;camera.y+=(focusTarget.y-camera.y)*.09;camera.zoom+=(focusTarget.zoom-camera.zoom)*.09;if(Math.abs(camera.x-focusTarget.x)+Math.abs(camera.y-focusTarget.y)<.5&&Math.abs(camera.zoom-focusTarget.zoom)<.003)focusTarget=null}
   ctx.setTransform(DPR,0,0,DPR,0,0);const ocean=ctx.createLinearGradient(0,0,0,H);ocean.addColorStop(0,'#a0d7db');ocean.addColorStop(.6,'#84cbd1');ocean.addColorStop(1,'#78bfc9');ctx.fillStyle=ocean;ctx.fillRect(0,0,W,H);
   for(let j=0;j<Math.ceil(H/65)+1;j++)for(let i=0;i<Math.ceil(W/95)+1;i++){const x=i*95+(j%2)*35+Math.sin(t*.2+j)*8,y=j*65+Math.sin(t*.4+i+j)*3;ctx.globalAlpha=.13+Math.sin(t*.5+i)*.05;ctx.beginPath();ctx.ellipse(x,y,11,3,0,.2,Math.PI-.2);ctx.strokeStyle='#eaffed';ctx.lineWidth=1.5;ctx.stroke()}ctx.globalAlpha=1;
-  const s=baseScale()*camera.zoom;ctx.translate(W/2,H*.52);ctx.scale(s,s);ctx.translate(-camera.x,-camera.y);hits=[];
+  const s=baseScale()*camera.zoom;ctx.translate(W/2,sceneCenterY());ctx.scale(s,s);ctx.translate(-camera.x,-camera.y);hits=[];
   ferry();
   if(terrainKey!==state.facilities.join())rebuildTerrain();ctx.drawImage(terrain,0,0);
   // Faraway sandbars keep the horizon alive while the inhabited bays grow.
@@ -313,7 +314,7 @@
   ctx.setTransform(DPR,0,0,DPR,0,0);if(state.clock<300||state.clock>=1140){ctx.fillStyle='#40558418';ctx.fillRect(0,0,W,H)}
  }
  function burst(x,y,kind){const n=kind==='unlock'?34:kind==='coin'?12:20;for(let i=0;i<n;i++)particles.push({x:x+(hash(i+1)-.5)*100,y:y+(hash(i+9)-.5)*45,kind,start:effectTime,life:1.8+hash(i)*1.3,seed:i})}
- function home(){focusTarget={x:550,y:unlocked()<2?475:has('park')?630:530,zoom:unlocked()<2?1.5:1.2}}
+ function home(){const phone=W<800&&H>W;focusTarget={x:phone&&unlocked()>=2?625:550,y:unlocked()<2?475:has('park')?(phone?660:630):530,zoom:phone?(unlocked()<2?1.02:.82):(unlocked()<2?1.5:1.2)}}
  function focus(x,y,zoom=1.5){focusTarget={x,y,zoom}}
  function inspectWork(i){const a=ACTIVITIES[i];focus(i===1?300:a.x,i===1?678:i===0?515:a.y,1.95)}
  function tap(x,y){const p=screenToWorld(x,y);const hit=[...hits].reverse().find(h=>Math.hypot(h.x-p.x,h.y-p.y)<h.r);if(!hit)return;

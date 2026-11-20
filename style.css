@@ -31,3 +31,41 @@
 .visitor-control{min-height:44px}.visitor-card-head span{font-size:11px}.receipt-row{font-size:12px}
 
 #visitorSwitch{width:100%;margin:8px 0 12px}.guest-follow{width:100%;margin-top:8px;font-size:11px;padding:9px}
+
+/* V21: a compact phone dashboard, with one clear task at the bottom. */
+@media(max-width:799px){
+ .hud{top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;right:12px;gap:10px}
+ .island-badge{min-height:54px;padding:8px 11px}.island-badge strong{font-size:14px}.island-badge small{font-size:10px}
+ .wallet{min-width:112px;max-width:48%;min-height:54px;padding:8px 11px 8px 33px}.wallet strong{font-size:20px}.wallet small{font-size:9px}.wallet .coin{left:10px}
+ .top-line{top:calc(env(safe-area-inset-top,0px) + 72px);left:15px;right:12px;min-height:38px;font-size:10px}
+ .top-line .round{width:40px;height:40px;font-size:18px}
+ .quest{display:none}
+ .auto-control{top:calc(env(safe-area-inset-top,0px) + 120px);left:12px;width:calc(55% - 16px);max-width:none;min-height:48px;padding:4px;gap:5px;border-radius:14px}
+ .auto-control button{min-height:40px;padding:8px;font-size:11px;flex-shrink:0}
+ .auto-control span{min-width:0;max-width:none;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+ .visitor-control{top:calc(env(safe-area-inset-top,0px) + 120px);left:auto;right:12px;width:calc(45% - 16px);max-width:none;min-height:48px;padding:8px 6px;border-radius:14px;font-size:11px;white-space:nowrap}
+ .scene-tools{top:auto;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 174px);right:12px;flex-direction:row;gap:6px;padding:5px;border-radius:26px;background:#fffbee9c;border:1px solid #ffffff70;backdrop-filter:blur(10px)}
+ .scene-tools .round{width:40px;height:40px;font-size:20px;box-shadow:none}
+ .bottom-hud{width:calc(100% - 24px);max-width:none;bottom:max(10px,env(safe-area-inset-bottom))}
+ .arrival{font-size:9px;padding:0 3px 7px;gap:5px}.arrival>span:first-child{max-width:67%}
+ .rent-meter{margin:0 5px 8px}
+ .collect{min-height:58px;padding:9px 12px;gap:10px;border-radius:17px}.collect>span:nth-child(2){min-width:0}.collect strong{font-size:14px;line-height:1.4}.collect small{font-size:10px;line-height:1.5}.collect-icon{flex-shrink:0;width:32px;height:32px}.collect-arrow{flex-shrink:0}
+ .bottom-hud nav{margin-top:10px;padding:5px;gap:5px;background:#fffbeedb;border:1px solid #ffffff85;border-radius:18px;backdrop-filter:blur(12px)}
+ .bottom-hud nav button{flex:1;width:auto;height:48px;background:transparent;border:0;box-shadow:none;border-radius:12px;font-size:10px}.bottom-hud nav span{font-size:21px;margin-bottom:2px}
+ #toast{top:calc(env(safe-area-inset-top,0px) + 180px);max-width:calc(100% - 32px);font-size:12px;z-index:10}
+ #selectionHint{top:calc(env(safe-area-inset-top,0px) + 178px);max-width:calc(100% - 24px);white-space:normal;line-height:1.6}
+ dialog{width:100%;max-width:100%;max-height:calc(88dvh - env(safe-area-inset-top,0px));padding:24px 18px max(22px,env(safe-area-inset-bottom));border-radius:24px 24px 0 0;overscroll-behavior:contain;overflow-x:hidden}
+ #closeSheet{position:sticky;top:0;float:right;width:44px;height:44px;margin:-10px -5px -6px 8px;right:auto;background:#f0f0e2ee;border-radius:50%;z-index:5}
+ dialog h2{font-size:22px;line-height:1.4;margin-top:9px}dialog .eyebrow{font-size:9px;letter-spacing:2px}dialog .intro{font-size:13px;line-height:1.8}.note{font-size:11px}
+ .secondary,.primary{min-height:44px;font-size:12px}.visitor-actions .primary{margin-top:0}.visitor-card-head{gap:6px}.visitor-card p{font-size:12px}.visitor-card-head span{font-size:11px}
+ .facility-card{padding:14px 11px;gap:9px}.facility-card>div{min-width:0}.facility-card strong{flex-wrap:wrap;gap:5px}.facility-card div>span{font-size:10px}.facility-symbol{width:32px;font-size:25px}.facility-card>b{font-size:11px}
+ .stat-row{flex-wrap:wrap}.stat-row>div{min-width:85px}.resident-row{gap:9px}.person-card>div{min-width:0}.person-card .status{font-size:10px;white-space:normal;max-width:40%;text-align:right}
+ .requirement{gap:12px;line-height:1.6}.requirement strong{text-align:right}.housing-grid{gap:10px}.home-card{padding:11px}.home-card h3{font-size:14px}.home-card small{font-size:10px}
+}
+@media(max-width:359px){.auto-control{width:calc(52% - 16px)}.auto-control span{font-size:9px}.visitor-control{width:calc(48% - 16px);font-size:10px}.scene-tools{gap:4px}.scene-tools .round{width:38px;height:38px}.collect strong{font-size:13px}.housing-grid{grid-template-columns:1fr}}
+@media(max-width:799px) and (max-height:500px) and (orientation:landscape){
+ .hud{right:260px}.top-line{right:260px}.auto-control{top:calc(env(safe-area-inset-top,0px) + 117px);width:205px}.visitor-control{top:calc(env(safe-area-inset-top,0px) + 174px);left:12px;right:auto;width:165px}
+ .bottom-hud{width:230px;left:auto;right:12px;transform:none}.arrival{display:none}.rent-meter{display:none}.collect{min-height:54px}.bottom-hud nav{margin-top:8px}
+ .scene-tools{left:12px;right:auto;bottom:max(10px,env(safe-area-inset-bottom))}.scene-tools .round{width:38px;height:38px}
+ #toast{top:80px;left:55%;max-width:45%}dialog{max-width:500px;max-height:94dvh}
+}
